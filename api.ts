@@ -42,8 +42,9 @@ function seymourFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Res
 // 只需要把自定义 fetch 传给 libseymour，库会自动去 /token 获取 T（用于 POST）
 const API = new Reader({
   url: 'https://www.example.com/api/greader',
+  // libseymour's IConfig type doesn't include 'fetch', so assert to any to allow a custom fetch
   fetch: seymourFetch,
-})
+} as any)
 
 export default API
 
