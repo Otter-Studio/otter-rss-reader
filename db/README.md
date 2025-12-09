@@ -27,69 +27,73 @@ db/
 ## 数据模型
 
 ### RSSFeed (RSS 源)
+
 ```typescript
 interface RSSFeed {
-  id: string;                    // 唯一标识
-  title: string;                 // 标题
-  description?: string;          // 描述
-  url: string;                   // RSS 源 URL
-  link?: string;                 // 源网站链接
-  image?: string;                // 源图标/图片 URL
-  category?: string;             // 分类
-  author?: string;               // 作者
-  language?: string;             // 语言
-  lastUpdated?: Date;            // 最后更新时间
-  createdAt: Date;               // 创建时间
-  isActive: boolean;             // 是否活跃
-  articles: RSSArticle[];        // 包含的文章列表
+  id: string; // 唯一标识
+  title: string; // 标题
+  description?: string; // 描述
+  url: string; // RSS 源 URL
+  link?: string; // 源网站链接
+  image?: string; // 源图标/图片 URL
+  category?: string; // 分类
+  author?: string; // 作者
+  language?: string; // 语言
+  lastUpdated?: Date; // 最后更新时间
+  createdAt: Date; // 创建时间
+  isActive: boolean; // 是否活跃
+  articles: RSSArticle[]; // 包含的文章列表
 }
 ```
 
 ### RSSArticle (RSS 文章)
+
 ```typescript
 interface RSSArticle {
-  id: string;                    // 唯一标识
-  title: string;                 // 标题
-  description?: string;          // 描述
-  content?: string;              // 完整内容
-  author?: string;               // 作者
-  link: string;                  // 文章链接
-  image?: string;                // 文章图片 URL
-  pubDate?: Date;                // 发布时间
-  createdAt: Date;               // 添加到数据库的时间
-  isRead: boolean;               // 是否已读
-  isStarred: boolean;            // 是否已星标
-  feed: RSSFeed;                 // 关联的 Feed
-  category?: string;             // 分类
-  guid?: string;                 // 全局唯一标识
+  id: string; // 唯一标识
+  title: string; // 标题
+  description?: string; // 描述
+  content?: string; // 完整内容
+  author?: string; // 作者
+  link: string; // 文章链接
+  image?: string; // 文章图片 URL
+  pubDate?: Date; // 发布时间
+  createdAt: Date; // 添加到数据库的时间
+  isRead: boolean; // 是否已读
+  isStarred: boolean; // 是否已星标
+  feed: RSSFeed; // 关联的 Feed
+  category?: string; // 分类
+  guid?: string; // 全局唯一标识
 }
 ```
 
 ### UserSettings (用户设置)
+
 ```typescript
 interface UserSettings {
-  id: string;                    // 唯一标识 (通常为 'default-settings')
-  theme: 'light' | 'dark' | 'system';  // 主题
-  refreshInterval: number;       // 刷新间隔 (秒)
-  articlesPerPage: number;       // 每页文章数
-  language: string;              // 语言
-  autoMarkAsRead: boolean;       // 自动标记为已读
+  id: string; // 唯一标识 (通常为 'default-settings')
+  theme: "light" | "dark" | "system"; // 主题
+  refreshInterval: number; // 刷新间隔 (秒)
+  articlesPerPage: number; // 每页文章数
+  language: string; // 语言
+  autoMarkAsRead: boolean; // 自动标记为已读
   notificationsEnabled: boolean; // 是否启用通知
-  lastSyncTime?: Date;           // 最后同步时间
-  createdAt: Date;               // 创建时间
-  updatedAt: Date;               // 更新时间
+  lastSyncTime?: Date; // 最后同步时间
+  createdAt: Date; // 创建时间
+  updatedAt: Date; // 更新时间
 }
 ```
 
 ### ReadHistory (阅读历史)
+
 ```typescript
 interface ReadHistory {
-  id: string;                    // 唯一标识
-  articleId: string;             // 文章 ID
-  articleTitle: string;          // 文章标题
-  readAt: Date;                  // 阅读时间
-  timeSpent: number;             // 阅读时长 (秒)
-  scrollPosition: number;        // 滚动位置
+  id: string; // 唯一标识
+  articleId: string; // 文章 ID
+  articleTitle: string; // 文章标题
+  readAt: Date; // 阅读时间
+  timeSpent: number; // 阅读时长 (秒)
+  scrollPosition: number; // 滚动位置
 }
 ```
 
@@ -98,7 +102,7 @@ interface ReadHistory {
 ### 初始化
 
 ```typescript
-import { initializeDatabase, closeDatabase } from './db';
+import { initializeDatabase, closeDatabase } from "./db";
 
 // 应用启动时
 await initializeDatabase();
@@ -110,13 +114,13 @@ closeDatabase();
 ### Feed 操作
 
 ```typescript
-import { FeedOperations } from './db';
+import { FeedOperations } from "./db";
 
 // 添加 Feed
 const feed = FeedOperations.addFeed({
-  id: 'feed-1',
-  title: 'My Blog',
-  url: 'https://example.com/rss',
+  id: "feed-1",
+  title: "My Blog",
+  url: "https://example.com/rss",
   // ... 其他字段
 });
 
@@ -127,40 +131,40 @@ const feeds = FeedOperations.getAllFeeds();
 const activeFeeds = FeedOperations.getActiveFeeds();
 
 // 按 ID 获取 Feed
-const feed = FeedOperations.getFeedById('feed-1');
+const feed = FeedOperations.getFeedById("feed-1");
 
 // 更新 Feed
-const updated = FeedOperations.updateFeed('feed-1', {
-  title: 'New Title',
-  description: 'New description'
+const updated = FeedOperations.updateFeed("feed-1", {
+  title: "New Title",
+  description: "New description",
 });
 
 // 删除 Feed
-FeedOperations.deleteFeed('feed-1');
+FeedOperations.deleteFeed("feed-1");
 
 // 按类别获取 Feed
-const techFeeds = FeedOperations.getFeedsByCategory('Technology');
+const techFeeds = FeedOperations.getFeedsByCategory("Technology");
 
 // 更新最后更新时间
-FeedOperations.updateLastUpdated('feed-1');
+FeedOperations.updateLastUpdated("feed-1");
 ```
 
 ### 文章操作
 
 ```typescript
-import { ArticleOperations } from './db';
+import { ArticleOperations } from "./db";
 
 // 添加文章
 const article = ArticleOperations.addArticle({
-  id: 'article-1',
-  title: 'Article Title',
-  link: 'https://example.com/article',
-  feedId: 'feed-1',
+  id: "article-1",
+  title: "Article Title",
+  link: "https://example.com/article",
+  feedId: "feed-1",
   // ... 其他字段
 });
 
 // 获取 Feed 的文章
-const articles = ArticleOperations.getArticlesByFeed('feed-1', limit);
+const articles = ArticleOperations.getArticlesByFeed("feed-1", limit);
 
 // 获取未读文章
 const unreadArticles = ArticleOperations.getUnreadArticles(limit);
@@ -169,22 +173,22 @@ const unreadArticles = ArticleOperations.getUnreadArticles(limit);
 const starredArticles = ArticleOperations.getStarredArticles(limit);
 
 // 按 ID 获取文章
-const article = ArticleOperations.getArticleById('article-1');
+const article = ArticleOperations.getArticleById("article-1");
 
 // 标记为已读
-ArticleOperations.markAsRead('article-1');
+ArticleOperations.markAsRead("article-1");
 
 // 标记为未读
-ArticleOperations.markAsUnread('article-1');
+ArticleOperations.markAsUnread("article-1");
 
 // 切换星标
-ArticleOperations.toggleStar('article-1');
+ArticleOperations.toggleStar("article-1");
 
 // 标记 Feed 的所有文章为已读
-ArticleOperations.markFeedArticlesAsRead('feed-1');
+ArticleOperations.markFeedArticlesAsRead("feed-1");
 
 // 删除文章
-ArticleOperations.deleteArticle('article-1');
+ArticleOperations.deleteArticle("article-1");
 
 // 删除旧文章 (30 天前)
 ArticleOperations.deleteOldArticles(30);
@@ -197,7 +201,7 @@ const stats = ArticleOperations.getArticleStats();
 ### 设置操作
 
 ```typescript
-import { SettingsOperations } from './db';
+import { SettingsOperations } from "./db";
 
 // 初始化设置
 const settings = SettingsOperations.initializeSettings();
@@ -207,9 +211,9 @@ const settings = SettingsOperations.getSettings();
 
 // 更新设置
 const updated = SettingsOperations.updateSettings({
-  theme: 'dark',
-  language: 'zh',
-  refreshInterval: 1800
+  theme: "dark",
+  language: "zh",
+  refreshInterval: 1800,
 });
 
 // 重置为默认设置
@@ -219,16 +223,16 @@ const reset = SettingsOperations.resetToDefaults();
 ### 历史操作
 
 ```typescript
-import { HistoryOperations } from './db';
+import { HistoryOperations } from "./db";
 
 // 添加阅读历史
-const history = HistoryOperations.addHistory('article-1', 'Article Title', 120);
+const history = HistoryOperations.addHistory("article-1", "Article Title", 120);
 
 // 获取最近的历史 (默认 50 条)
 const history = HistoryOperations.getHistory(20);
 
 // 获取特定文章的历史
-const history = HistoryOperations.getArticleHistory('article-1');
+const history = HistoryOperations.getArticleHistory("article-1");
 
 // 清空历史
 HistoryOperations.clearHistory();
@@ -240,7 +244,7 @@ HistoryOperations.deleteOldHistory(90);
 ### 工具函数
 
 ```typescript
-import { DatabaseUtils } from './db';
+import { DatabaseUtils } from "./db";
 
 // 获取统计信息
 const stats = DatabaseUtils.getStatistics();
@@ -269,8 +273,8 @@ import {
   FeedOperations,
   ArticleOperations,
   SettingsOperations,
-  HistoryOperations
-} from './db';
+  HistoryOperations,
+} from "./db";
 
 // 1. 初始化数据库
 await initializeDatabase();
@@ -280,17 +284,17 @@ SettingsOperations.initializeSettings();
 
 // 3. 添加 Feed
 const feed = FeedOperations.addFeed({
-  id: 'rss-feed-1',
-  title: 'My Blog',
-  url: 'https://example.com/rss'
+  id: "rss-feed-1",
+  title: "My Blog",
+  url: "https://example.com/rss",
 });
 
 // 4. 添加文章
 const article = ArticleOperations.addArticle({
-  id: 'article-1',
-  title: 'First Article',
-  link: 'https://example.com/article-1',
-  feedId: feed.id
+  id: "article-1",
+  title: "First Article",
+  link: "https://example.com/article-1",
+  feedId: feed.id,
 });
 
 // 5. 标记为已读
