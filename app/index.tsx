@@ -5,6 +5,7 @@ import { Icon } from "@/components/ui/icon";
 import { SquareLibrary, Settings, BookOpenText } from "lucide-react-native";
 
 export default function Home() {
+  const [activeKey, setActiveKey] = React.useState("learn");
   const navigationItems = [
     {
       icon: <Icon as={BookOpenText} size="lg" />,
@@ -26,6 +27,7 @@ export default function Home() {
   const handleItemPress = (key: string) => {
     console.log("Pressed item:", key);
     // 这里可以添加导航逻辑
+    setActiveKey(key);
   };
 
   return (
@@ -33,7 +35,7 @@ export default function Home() {
       <AppNavigation
         items={navigationItems}
         onItemPress={handleItemPress}
-        activeKey="learn"
+        activeKey={activeKey}
       />
     </Box>
   );

@@ -106,7 +106,7 @@ const itemStyle = tva({
 });
 
 const iconStyle = tva({
-  base: "w-8 h-8",
+  base: "w-8 h-8 flex justify-center items-center",
   variants: {
     active: {
       true: "text-typography-0",
@@ -123,10 +123,10 @@ const textStyle = tva({
       false: "text-typography-500",
     },
     position: {
-      top: "mt-1",
-      bottom: "mt-1",
-      left: "mt-2",
-      right: "mt-2",
+      top: "mx-1",
+      bottom: "mx-1",
+      left: "mx-2",
+      right: "mx-2",
     },
     hasIcon: {
       true: "",
