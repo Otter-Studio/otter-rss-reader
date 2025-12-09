@@ -3,6 +3,7 @@ import { Box } from "@/components/ui/box";
 import { AppNavigation } from "@/components/otter-ui/navigation";
 import { Icon } from "@/components/ui/icon";
 import { SquareLibrary, Settings, BookOpenText } from "lucide-react-native";
+
 export default function Home() {
   const navigationItems = [
     {
