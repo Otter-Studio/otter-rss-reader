@@ -1,16 +1,24 @@
 import React from "react";
 import { Box } from "@/components/ui/box";
 import { AppNavigation } from "@/components/otter-ui/navigation";
-
+import { Icon } from "@/components/ui/icon";
+import { SquareLibrary, Settings, BookOpenText } from "lucide-react-native";
 export default function Home() {
   const navigationItems = [
     {
-      title: "学习",
+      icon: <Icon as={BookOpenText} size="lg" />,
+      title: "阅读",
       key: "learn",
     },
     {
-      title: "数据",
-      key: "data",
+      icon: <Icon as={SquareLibrary} size="lg" />,
+      title: "列表",
+      key: "list",
+    },
+    {
+      icon: <Icon as={Settings} size="lg" />,
+      title: "设置",
+      key: "settings",
     },
   ];
 
