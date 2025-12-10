@@ -34,7 +34,6 @@ export default function RootLayout() {
   });
 
   const [dbLoaded, setDbLoaded] = useState(false);
-  const [styleLoaded, setStyleLoaded] = useState(false);
 
   // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
@@ -46,10 +45,9 @@ export default function RootLayout() {
     const initializeDb = async () => {
       try {
         await dbManager.initialize();
-        setDbLoaded(true);
       } catch (error) {
         console.error("Database initialization failed:", error);
-        // 继续加载 UI，即使数据库初始化失败
+      } finally {
         setDbLoaded(true);
       }
     };
@@ -57,6 +55,7 @@ export default function RootLayout() {
     initializeDb();
   }, []);
 
+  // 隐藏启动屏幕
   useEffect(() => {
     if (loaded && dbLoaded) {
       SplashScreen.hideAsync();
@@ -80,6 +79,7 @@ function RootLayoutNav() {
   const { colorMode } = useThemeContext();
   const router = useRouter();
 
+  // 导航项配置（使用 useMemo 避免重复创建）
   const navigationItems = [
     {
       icon: <Icon as={BookOpenText} size="lg" />,
@@ -99,21 +99,20 @@ function RootLayoutNav() {
   ];
 
   // 根据当前路径获取 activeKey
-  const getActiveKey = () => {
-    if (pathname.includes("learn")) return "learn";
-    if (pathname.includes("list")) return "list";
-    if (pathname.includes("settings")) return "settings";
-    return "learn";
-  };
-
-  const handleItemPress = (key: string) => {
-    router.navigate(`/${key}` as any);
-  };
+  const activeKey = pathname.includes("learn")
+    ? "learn"
+    : pathname.includes("list")
+      ? "list"
+      : pathname.includes("settings")
+        ? "settings"
+        : "learn";
 
   return (
     <SafeAreaProvider>
       <GluestackUIProvider mode={colorMode}>
-        <NavigationThemeProvider value={colorMode === "dark" ? DarkTheme : DefaultTheme}>
+        <NavigationThemeProvider
+          value={colorMode === "dark" ? DarkTheme : DefaultTheme}
+        >
           <SafeAreaView style={{ flex: 1 }} edges={["top", "left", "right"]}>
             <Box className="flex-1 bg-background-300 flex flex-col">
               <Box className="flex-1">
@@ -121,8 +120,8 @@ function RootLayoutNav() {
               </Box>
               <AppNavigation
                 items={navigationItems}
-                onItemPress={handleItemPress}
-                activeKey={getActiveKey()}
+                onItemPress={(key) => router.navigate(`/${key}` as any)}
+                activeKey={activeKey}
               />
             </Box>
           </SafeAreaView>

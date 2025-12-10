@@ -1,100 +1,188 @@
-import Reader from 'libseymour'
+import Reader, { IConfig } from 'libseymour'
 import { SettingsOperations } from '@/db/settings'
 
-let authHeader: string | null = null
-let API: Reader | null = null
+class APIClient {
+  private static instance: APIClient | null = null
+  private reader: Reader | null = null
+  private initializing: Promise<Reader> | null = null
+  private lastError: Error | null = null
 
-function encodeBase64(str: string): string {
-  if (typeof btoa === 'function') return btoa(str)
-  if (typeof Buffer !== 'undefined') return Buffer.from(str).toString('base64')
-  throw new Error('No base64 available')
-}
+  private constructor() {}
 
-/**
- * 最简单的：调用 setBasicAuth(user, pass) 来设置 Basic Auth（Node 或浏览器都可）。
- * 不调用则在浏览器中使用已有的 session cookie（fetch 会带 credentials:'include'）。
- */
-export function setBasicAuth(user: string, pass: string): void {
-  if (!user && !pass) {
-    authHeader = null
-    return
-  }
-  authHeader = 'Basic ' + encodeBase64(`${user}:${pass}`)
-}
-
-export function clearAuth(): void {
-  authHeader = null
-}
-
-function seymourFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
-  const initCopy = { ...(init || {}) }
-  const headers = new Headers(initCopy.headers || {})
-
-  if (authHeader) headers.set('Authorization', authHeader)
-
-  // 浏览器默认复用 cookie 会话
-  if (typeof window !== 'undefined' && !('credentials' in initCopy)) {
-    initCopy.credentials = 'include'
+  /**
+   * 获取单例实例
+   */
+  public static getInstance(): APIClient {
+    if (!APIClient.instance) {
+      APIClient.instance = new APIClient()
+    }
+    return APIClient.instance
   }
 
-  initCopy.headers = headers
-  return fetch(input, initCopy)
-}
-
-/**
- * 从设置中初始化 API 配置
- * 获取 baseUrl、username 和 password 并设置到 API
- */
-export async function initializeAPIFromSettings(): Promise<Reader> {
-  try {
-    const userInfo = await SettingsOperations.getUserInfo()
-    
-    if (!userInfo || !userInfo.baseUrl) {
-      throw new Error('baseUrl not configured in settings')
+  /**
+   * 初始化 API 客户端
+   */
+  public async initialize(): Promise<Reader> {
+    // 如果已经初始化完成，直接返回
+    if (this.reader) {
+      return this.reader
     }
 
-    // 如果有用户名和密码，设置 Basic Auth
-    if (userInfo.username && userInfo.password) {
-      setBasicAuth(userInfo.username, userInfo.password)
+    // 如果正在初始化中，返回正在进行的 Promise
+    if (this.initializing) {
+      return this.initializing
     }
 
-    // 创建 API 实例
-    API = new Reader({
-      url: userInfo.baseUrl,
-      // libseymour's IConfig type doesn't include 'fetch', so assert to any to allow a custom fetch
-      fetch: seymourFetch,
-    } as any)
+    // 开始初始化
+    this.initializing = this.performInitialization()
+    try {
+      this.reader = await this.initializing
+      this.lastError = null
+    } catch (error) {
+      this.lastError = error instanceof Error ? error : new Error(String(error))
+      this.initializing = null
+      throw error
+    }
 
-    return API
-  } catch (error) {
-    console.error('Failed to initialize API from settings:', error)
-    throw error
+    this.initializing = null
+    return this.reader
+  }
+
+  /**
+   * 执行实际的初始化逻辑
+   */
+  private async performInitialization(): Promise<Reader> {
+    try {
+      const userInfo = await SettingsOperations.getUserInfo()
+
+      if (!userInfo || !userInfo.baseUrl) {
+        throw new Error('baseUrl not configured in settings')
+      }
+
+      if (!userInfo.username || !userInfo.password) {
+        throw new Error('username or password not configured in settings')
+      }
+
+      // 确保 URL 有协议前缀
+      let baseUrl = userInfo.baseUrl
+      if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+        baseUrl = 'http://' + baseUrl
+      }
+
+      console.log('[API] Initializing with URL:', baseUrl)
+
+      const config: IConfig = {
+        url: baseUrl,
+      }
+
+      const reader = new Reader(config)
+
+      try {
+        await reader.getAuthToken(userInfo.username, userInfo.password)
+        console.log('[API] Authentication successful')
+      } catch (error) {
+        console.error('[API] Authentication failed:', error)
+        throw new Error(`Authentication failed: ${error instanceof Error ? error.message : String(error)}`)
+      }
+
+      return reader
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error)
+      console.error('[API] Initialization failed:', errorMsg)
+      throw error
+    }
+  }
+
+  /**
+   * 获取 Reader 实例（如果未初始化则自动初始化）
+   */
+  public async getReader(): Promise<Reader> {
+    if (!this.reader) {
+      return await this.initialize()
+    }
+    return this.reader
+  }
+
+  /**
+   * 同步获取 Reader 实例（必须已初始化）
+   */
+  public getReaderSync(): Reader {
+    if (!this.reader) {
+      throw new Error('API not initialized. Call initialize() or getReader() first.')
+    }
+    return this.reader
+  }
+
+  /**
+   * 获取最后一次错误
+   */
+  public getLastError(): Error | null {
+    return this.lastError
+  }
+
+  /**
+   * 检查是否已初始化
+   */
+  public isInitialized(): boolean {
+    return this.reader !== null
+  }
+
+  /**
+   * 重置单例
+   */
+  public reset(): void {
+    this.reader = null
+    this.initializing = null
+    this.lastError = null
+    console.log('[API] Reset')
   }
 }
 
 /**
- * 获取 API 实例，如果未初始化则先初始化
+ * 获取 API 客户端单例实例
  */
-export async function getAPI(): Promise<Reader> {
-  if (!API) {
-    return await initializeAPIFromSettings()
-  }
-  return API
+export const apiClient = APIClient.getInstance()
+
+/**
+ * 初始化 API（推荐在 app 启动时调用）
+ */
+export async function initializeAPI(): Promise<Reader> {
+  return apiClient.initialize()
 }
 
 /**
- * 使用自定义配置初始化 API
+ * 获取 Reader 实例（如果未初始化则自动初始化）
  */
-export async function initializeAPIWithConfig(baseUrl: string, username: string, password: string): Promise<Reader> {
-  setBasicAuth(username, password)
-  
-  API = new Reader({
-    url: baseUrl,
-    fetch: seymourFetch,
-  } as any)
-
-  return API
+export async function getReader(): Promise<Reader> {
+  return apiClient.getReader()
 }
 
-// 导出默认的 API（兼容旧代码）
-export default API
+/**
+ * 同步获取 Reader 实例（必须已初始化）
+ */
+export function getReaderSync(): Reader {
+  return apiClient.getReaderSync()
+}
+
+/**
+ * 检查 API 是否已初始化
+ */
+export function isAPIInitialized(): boolean {
+  return apiClient.isInitialized()
+}
+
+/**
+ * 获取最后一次初始化错误
+ */
+export function getAPIError(): Error | null {
+  return apiClient.getLastError()
+}
+
+/**
+ * 重置 API
+ */
+export function resetAPI(): void {
+  apiClient.reset()
+}
+
+export default apiClient
