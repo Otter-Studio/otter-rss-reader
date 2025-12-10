@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { SettingsOperations } from "@/db/settings";
+import { useColorScheme } from "./useColorScheme";
 
 type ColorMode = "light" | "dark" | "system";
 
@@ -14,6 +15,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [themeSetting, setThemeSettingState] = useState<ColorMode>("light");
   const [colorMode, setColorMode] = useState<"light" | "dark">("light");
+  const systemColorScheme = useColorScheme();
 
   // 初始化主题设置
   useEffect(() => {
@@ -23,11 +25,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         if (settings) {
           setThemeSettingState(settings.theme);
           // 应用主题
-          if (settings.theme === "system") {
-            setColorMode("light");
-          } else {
-            setColorMode(settings.theme as "light" | "dark");
-          }
+          applyTheme(settings.theme);
         }
       } catch (error) {
         console.error("加载主题设置失败:", error);
@@ -37,17 +35,43 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     initTheme();
   }, []);
 
+  // 当系统颜色方案改变时更新
+  useEffect(() => {
+    if (themeSetting === "system" && systemColorScheme) {
+      setColorMode(systemColorScheme);
+      updateDOMTheme(systemColorScheme);
+    }
+  }, [systemColorScheme, themeSetting]);
+
+  const applyTheme = (theme: ColorMode) => {
+    if (theme === "system") {
+      const systemTheme = systemColorScheme || "light";
+      setColorMode(systemTheme);
+      updateDOMTheme(systemTheme);
+    } else {
+      setColorMode(theme as "light" | "dark");
+      updateDOMTheme(theme as "light" | "dark");
+    }
+  };
+
+  const updateDOMTheme = (mode: "light" | "dark") => {
+    if (typeof document !== "undefined") {
+      const html = document.documentElement;
+      if (mode === "dark") {
+        html.classList.add("dark");
+      } else {
+        html.classList.remove("dark");
+      }
+    }
+  };
+
   const setThemeSetting = async (theme: ColorMode) => {
     try {
       // 先更新本地状态
       setThemeSettingState(theme);
 
       // 应用主题
-      if (theme === "system") {
-        setColorMode("light");
-      } else {
-        setColorMode(theme as "light" | "dark");
-      }
+      applyTheme(theme);
 
       // 然后保存到数据库
       await SettingsOperations.updateSettings({ theme });

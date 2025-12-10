@@ -102,10 +102,10 @@ function RootLayoutNav() {
   const activeKey = pathname.includes("learn")
     ? "learn"
     : pathname.includes("list")
-      ? "list"
-      : pathname.includes("settings")
-        ? "settings"
-        : "learn";
+    ? "list"
+    : pathname.includes("settings")
+    ? "settings"
+    : "learn";
 
   return (
     <SafeAreaProvider>
@@ -114,7 +114,9 @@ function RootLayoutNav() {
           value={colorMode === "dark" ? DarkTheme : DefaultTheme}
         >
           <SafeAreaView style={{ flex: 1 }} edges={["top", "left", "right"]}>
-            <Box className="flex-1 bg-background-300 flex flex-col">
+            <Box
+              className={`flex-1 bg-background-0 dark:bg-background-800 flex flex-col`}
+            >
               <Box className="flex-1">
                 <Slot />
               </Box>

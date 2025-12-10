@@ -1,13 +1,60 @@
 import Reader, { IConfig } from 'libseymour'
 import { SettingsOperations } from '@/db/settings'
 
+/**
+ * 为 libseymour 的 getAuthToken 创建兼容性包装
+ * 解决移动端与 PC 端的差异
+ */
+async function getAuthTokenCompat(
+  baseUrl: string,
+  username: string,
+  password: string
+): Promise<string> {
+  const authUrl = baseUrl.replace(/\/+$/, '') + '/accounts/ClientLogin'
+
+  console.log('[API] Requesting auth token from:', authUrl)
+
+  // 使用标准 fetch 而不是依赖 libseymour 的实现
+  const response = await fetch(authUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: new URLSearchParams({
+      Email: username,
+      Passwd: password,
+    }).toString(),
+  })
+
+  const responseText = await response.text()
+
+  if (!response.ok) {
+    console.error('[API] Auth failed with status:', response.status)
+    console.error('[API] Response body:', responseText)
+    throw new Error(`HTTP ${response.status}: ${responseText}`)
+  }
+
+  // 解析响应
+  const lines = responseText.split('\n')
+  const authLine = lines.find(line => line.startsWith('Auth='))
+
+  if (!authLine) {
+    throw new Error('No Auth token in response')
+  }
+
+  const token = authLine.replace('Auth=', '')
+  console.log('[API] Auth token obtained successfully')
+
+  return token
+}
+
 class APIClient {
   private static instance: APIClient | null = null
   private reader: Reader | null = null
   private initializing: Promise<Reader> | null = null
   private lastError: Error | null = null
 
-  private constructor() {}
+  private constructor() { }
 
   /**
    * 获取单例实例
@@ -63,11 +110,13 @@ class APIClient {
         throw new Error('username or password not configured in settings')
       }
 
-      // 确保 URL 有协议前缀
-      let baseUrl = userInfo.baseUrl
+      // 确保 URL 有协议前缀，并清理空格和末尾斜杠
+      let baseUrl = userInfo.baseUrl.trim()
       if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
         baseUrl = 'http://' + baseUrl
       }
+      // 移除末尾的所有斜杠
+      baseUrl = baseUrl.replace(/\/+$/, '')
 
       console.log('[API] Initializing with URL:', baseUrl)
 
@@ -78,7 +127,9 @@ class APIClient {
       const reader = new Reader(config)
 
       try {
-        await reader.getAuthToken(userInfo.username, userInfo.password)
+        // 使用兼容性包装获取认证令牌
+        const token = await getAuthTokenCompat(baseUrl, userInfo.username, userInfo.password)
+        reader.setAuthToken(token)
         console.log('[API] Authentication successful')
       } catch (error) {
         console.error('[API] Authentication failed:', error)
