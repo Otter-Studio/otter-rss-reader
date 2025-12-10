@@ -35,7 +35,7 @@ export default function RootLayout() {
 
   const [dbLoaded, setDbLoaded] = useState(false);
   const [styleLoaded, setStyleLoaded] = useState(false);
-  
+
   // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
     if (error) throw error;
@@ -48,7 +48,7 @@ export default function RootLayout() {
         await dbManager.initialize();
         setDbLoaded(true);
       } catch (error) {
-        console.error('Database initialization failed:', error);
+        console.error("Database initialization failed:", error);
         // 继续加载 UI，即使数据库初始化失败
         setDbLoaded(true);
       }

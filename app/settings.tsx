@@ -30,14 +30,14 @@ export default function SettingsPage() {
       try {
         setIsLoading(true);
         let userInfo = await SettingsOperations.getUserInfo();
-        
+
         // 如果设置不存在，先初始化
         if (!userInfo) {
           console.log("设置不存在，初始化默认设置");
           await SettingsOperations.initializeSettings();
           userInfo = await SettingsOperations.getUserInfo();
         }
-        
+
         if (userInfo) {
           setBaseUrl(userInfo.baseUrl || "");
           setUsername(userInfo.username || "");

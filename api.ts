@@ -1,6 +1,8 @@
 import Reader from 'libseymour'
+import { SettingsOperations } from '@/db/settings'
 
 let authHeader: string | null = null
+let API: Reader | null = null
 
 function encodeBase64(str: string): string {
   if (typeof btoa === 'function') return btoa(str)
@@ -39,16 +41,60 @@ function seymourFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Res
   return fetch(input, initCopy)
 }
 
-// 只需要把自定义 fetch 传给 libseymour，库会自动去 /token 获取 T（用于 POST）
-const API = new Reader({
-  url: 'https://www.example.com/api/greader',
-  // libseymour's IConfig type doesn't include 'fetch', so assert to any to allow a custom fetch
-  fetch: seymourFetch,
-} as any)
+/**
+ * 从设置中初始化 API 配置
+ * 获取 baseUrl、username 和 password 并设置到 API
+ */
+export async function initializeAPIFromSettings(): Promise<Reader> {
+  try {
+    const userInfo = await SettingsOperations.getUserInfo()
+    
+    if (!userInfo || !userInfo.baseUrl) {
+      throw new Error('baseUrl not configured in settings')
+    }
 
+    // 如果有用户名和密码，设置 Basic Auth
+    if (userInfo.username && userInfo.password) {
+      setBasicAuth(userInfo.username, userInfo.password)
+    }
+
+    // 创建 API 实例
+    API = new Reader({
+      url: userInfo.baseUrl,
+      // libseymour's IConfig type doesn't include 'fetch', so assert to any to allow a custom fetch
+      fetch: seymourFetch,
+    } as any)
+
+    return API
+  } catch (error) {
+    console.error('Failed to initialize API from settings:', error)
+    throw error
+  }
+}
+
+/**
+ * 获取 API 实例，如果未初始化则先初始化
+ */
+export async function getAPI(): Promise<Reader> {
+  if (!API) {
+    return await initializeAPIFromSettings()
+  }
+  return API
+}
+
+/**
+ * 使用自定义配置初始化 API
+ */
+export async function initializeAPIWithConfig(baseUrl: string, username: string, password: string): Promise<Reader> {
+  setBasicAuth(username, password)
+  
+  API = new Reader({
+    url: baseUrl,
+    fetch: seymourFetch,
+  } as any)
+
+  return API
+}
+
+// 导出默认的 API（兼容旧代码）
 export default API
-
-// 使用示例：
-// import API, { setBasicAuth } from './libseymour-api'
-// setBasicAuth('youruser', 'yourpass')   // 在 Node 或需要 Basic Auth 时调用
-// // 或 在浏览器不调用 setBasicAuth，登录后直接使用（会用 cookie）
