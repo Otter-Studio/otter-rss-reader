@@ -17,6 +17,8 @@ import { MoonIcon, SunIcon, Icon } from "@/components/ui/icon";
 import { Box } from "@/components/ui/box";
 import { AppNavigation } from "@/components/otter-ui/navigation";
 import { SquareLibrary, Settings, BookOpenText } from "lucide-react-native";
+import { dbManager } from "@/db/database";
+import { Spinner } from "@/components/ui/spinner";
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -31,17 +33,41 @@ export default function RootLayout() {
     ...FontAwesome.font,
   });
 
+  const [dbLoaded, setDbLoaded] = useState(false);
   const [styleLoaded, setStyleLoaded] = useState(false);
+  
   // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
     if (error) throw error;
   }, [error]);
 
+  // 初始化数据库
   useEffect(() => {
-    if (loaded) {
+    const initializeDb = async () => {
+      try {
+        await dbManager.initialize();
+        setDbLoaded(true);
+      } catch (error) {
+        console.error('Database initialization failed:', error);
+        // 继续加载 UI，即使数据库初始化失败
+        setDbLoaded(true);
+      }
+    };
+
+    initializeDb();
+  }, []);
+
+  useEffect(() => {
+    if (loaded && dbLoaded) {
       SplashScreen.hideAsync();
     }
-  }, [loaded]);
+  }, [loaded, dbLoaded]);
+
+  // 等待字体和数据库都加载完成
+  if (!loaded || !dbLoaded) {
+    return null;
+  }
+
   return <RootLayoutNav />;
 }
 
