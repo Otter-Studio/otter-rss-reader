@@ -4,7 +4,7 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import {
   DarkTheme,
   DefaultTheme,
-  ThemeProvider,
+  ThemeProvider as NavigationThemeProvider,
 } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
@@ -12,13 +12,13 @@ import { useEffect, useState } from "react";
 import { useColorScheme } from "@/components/useColorScheme";
 import { Slot, usePathname, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { Fab, FabIcon } from "@/components/ui/fab";
-import { MoonIcon, SunIcon, Icon } from "@/components/ui/icon";
 import { Box } from "@/components/ui/box";
+import { Icon } from "@/components/ui/icon";
 import { AppNavigation } from "@/components/otter-ui/navigation";
 import { SquareLibrary, Settings, BookOpenText } from "lucide-react-native";
 import { dbManager } from "@/db/database";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { ThemeProvider, useThemeContext } from "@/components/ThemeContext";
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -68,12 +68,16 @@ export default function RootLayout() {
     return null;
   }
 
-  return <RootLayoutNav />;
+  return (
+    <ThemeProvider>
+      <RootLayoutNav />
+    </ThemeProvider>
+  );
 }
 
 function RootLayoutNav() {
   const pathname = usePathname();
-  const [colorMode, setColorMode] = useState<"light" | "dark">("light");
+  const { colorMode } = useThemeContext();
   const router = useRouter();
 
   const navigationItems = [
@@ -109,7 +113,7 @@ function RootLayoutNav() {
   return (
     <SafeAreaProvider>
       <GluestackUIProvider mode={colorMode}>
-        <ThemeProvider value={colorMode === "dark" ? DarkTheme : DefaultTheme}>
+        <NavigationThemeProvider value={colorMode === "dark" ? DarkTheme : DefaultTheme}>
           <SafeAreaView style={{ flex: 1 }} edges={["top", "left", "right"]}>
             <Box className="flex-1 bg-background-300 flex flex-col">
               <Box className="flex-1">
@@ -121,17 +125,8 @@ function RootLayoutNav() {
                 activeKey={getActiveKey()}
               />
             </Box>
-            <Fab
-              onPress={() =>
-                setColorMode(colorMode === "dark" ? "light" : "dark")
-              }
-              className="absolute bottom-24 right-4"
-              size="lg"
-            >
-              <FabIcon as={colorMode === "dark" ? MoonIcon : SunIcon} />
-            </Fab>
           </SafeAreaView>
-        </ThemeProvider>
+        </NavigationThemeProvider>
       </GluestackUIProvider>
     </SafeAreaProvider>
   );

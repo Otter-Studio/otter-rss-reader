@@ -107,7 +107,7 @@ const itemStyle = tva({
 });
 
 const iconStyle = tva({
-  base: "w-8 h-8 flex justify-center items-center",
+  base: "w-8 h-8 flex justify-center items-center ",
   variants: {
     active: {
       true: "text-typography-0",
