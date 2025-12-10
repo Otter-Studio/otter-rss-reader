@@ -87,7 +87,7 @@ const containerStyle = tva({
 });
 
 const itemStyle = tva({
-  base: "flex items-center justify-center p-2 rounded-lg",
+  base: "flex items-center justify-center p-2 rounded-full",
   variants: {
     active: {
       true: "bg-primary-500",
