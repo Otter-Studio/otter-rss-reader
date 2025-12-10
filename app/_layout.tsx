@@ -1,33 +1,33 @@
-import { GluestackUIProvider } from '@/components/ui/gluestack-ui-provider';
-import '@/global.css';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { GluestackUIProvider } from "@/components/ui/gluestack-ui-provider";
+import "@/global.css";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
 import {
   DarkTheme,
   DefaultTheme,
   ThemeProvider,
-} from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import * as SplashScreen from 'expo-splash-screen';
-import { useEffect, useState } from 'react';
-import { useColorScheme } from '@/components/useColorScheme';
-import { Slot, usePathname, useRouter } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { Fab, FabIcon } from '@/components/ui/fab';
-import { MoonIcon, SunIcon, Icon } from '@/components/ui/icon';
-import { Box } from '@/components/ui/box';
-import { AppNavigation } from '@/components/otter-ui/navigation';
-import { SquareLibrary, Settings, BookOpenText } from 'lucide-react-native';
+} from "@react-navigation/native";
+import { useFonts } from "expo-font";
+import * as SplashScreen from "expo-splash-screen";
+import { useEffect, useState } from "react";
+import { useColorScheme } from "@/components/useColorScheme";
+import { Slot, usePathname, useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { Fab, FabIcon } from "@/components/ui/fab";
+import { MoonIcon, SunIcon, Icon } from "@/components/ui/icon";
+import { Box } from "@/components/ui/box";
+import { AppNavigation } from "@/components/otter-ui/navigation";
+import { SquareLibrary, Settings, BookOpenText } from "lucide-react-native";
 
 export {
   // Catch any errors thrown by the Layout component.
   ErrorBoundary,
-} from 'expo-router';
+} from "expo-router";
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
     ...FontAwesome.font,
   });
 
@@ -47,7 +47,7 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   const pathname = usePathname();
-  const [colorMode, setColorMode] = useState<'light' | 'dark'>('light');
+  const [colorMode, setColorMode] = useState<"light" | "dark">("light");
   const router = useRouter();
 
   const navigationItems = [
@@ -82,7 +82,7 @@ function RootLayoutNav() {
 
   return (
     <GluestackUIProvider mode={colorMode}>
-      <ThemeProvider value={colorMode === 'dark' ? DarkTheme : DefaultTheme}>
+      <ThemeProvider value={colorMode === "dark" ? DarkTheme : DefaultTheme}>
         <Box className="flex-1 bg-background-300 h-[100vh] flex flex-col">
           <Slot />
           <AppNavigation
@@ -91,17 +91,13 @@ function RootLayoutNav() {
             activeKey={getActiveKey()}
           />
         </Box>
-        {pathname === '/' && (
-          <Fab
-            onPress={() =>
-              setColorMode(colorMode === 'dark' ? 'light' : 'dark')
-            }
-            className="m-6"
-            size="lg"
-          >
-            <FabIcon as={colorMode === 'dark' ? MoonIcon : SunIcon} />
-          </Fab>
-        )}
+        <Fab
+          onPress={() => setColorMode(colorMode === "dark" ? "light" : "dark")}
+          className="m-6"
+          size="lg"
+        >
+          <FabIcon as={colorMode === "dark" ? MoonIcon : SunIcon} />
+        </Fab>
       </ThemeProvider>
     </GluestackUIProvider>
   );
