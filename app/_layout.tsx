@@ -18,7 +18,7 @@ import { Box } from "@/components/ui/box";
 import { AppNavigation } from "@/components/otter-ui/navigation";
 import { SquareLibrary, Settings, BookOpenText } from "lucide-react-native";
 import { dbManager } from "@/db/database";
-import { Spinner } from "@/components/ui/spinner";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -107,24 +107,32 @@ function RootLayoutNav() {
   };
 
   return (
-    <GluestackUIProvider mode={colorMode}>
-      <ThemeProvider value={colorMode === "dark" ? DarkTheme : DefaultTheme}>
-        <Box className="flex-1 bg-background-300 h-[100vh] flex flex-col">
-          <Slot />
-          <AppNavigation
-            items={navigationItems}
-            onItemPress={handleItemPress}
-            activeKey={getActiveKey()}
-          />
-        </Box>
-        <Fab
-          onPress={() => setColorMode(colorMode === "dark" ? "light" : "dark")}
-          className="m-6"
-          size="lg"
-        >
-          <FabIcon as={colorMode === "dark" ? MoonIcon : SunIcon} />
-        </Fab>
-      </ThemeProvider>
-    </GluestackUIProvider>
+    <SafeAreaProvider>
+      <GluestackUIProvider mode={colorMode}>
+        <ThemeProvider value={colorMode === "dark" ? DarkTheme : DefaultTheme}>
+          <SafeAreaView style={{ flex: 1 }} edges={["top", "left", "right"]}>
+            <Box className="flex-1 bg-background-300 flex flex-col">
+              <Box className="flex-1">
+                <Slot />
+              </Box>
+              <AppNavigation
+                items={navigationItems}
+                onItemPress={handleItemPress}
+                activeKey={getActiveKey()}
+              />
+            </Box>
+            <Fab
+              onPress={() =>
+                setColorMode(colorMode === "dark" ? "light" : "dark")
+              }
+              className="absolute bottom-24 right-4"
+              size="lg"
+            >
+              <FabIcon as={colorMode === "dark" ? MoonIcon : SunIcon} />
+            </Fab>
+          </SafeAreaView>
+        </ThemeProvider>
+      </GluestackUIProvider>
+    </SafeAreaProvider>
   );
 }

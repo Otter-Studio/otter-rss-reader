@@ -9,6 +9,7 @@ import {
   LayoutAnimation,
 } from "react-native";
 import { tva } from "@gluestack-ui/utils/nativewind-utils";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 /**
  * AppNavigation 组件 - 应用主页面导航栏
@@ -146,6 +147,7 @@ const AppNavigation: React.FC<AppNavigationProps> = ({
   margin = "xl",
 }) => {
   const [dimensions, setDimensions] = useState(Dimensions.get("window"));
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     const subscription = Dimensions.addEventListener("change", ({ window }) => {
@@ -170,19 +172,13 @@ const AppNavigation: React.FC<AppNavigationProps> = ({
 
   const limitedItems = items.slice(0, 5);
 
-  // const containerStyle2 = useMemo(() => {
-  //   let style: any = {};
-  //   if (actualPosition === "bottom") {
-  //     style.bottom = spacing;
-  //   } else if (actualPosition === "top") {
-  //     style.top = spacing;
-  //   } else if (actualPosition === "left") {
-  //     style.left = spacing;
-  //   } else if (actualPosition === "right") {
-  //     style.right = spacing;
-  //   }
-  //   return style;
-  // }, [actualPosition, spacing]);
+  // 根据位置计算底部安全区边距
+  const safeAreaPadding = useMemo(() => {
+    if (actualPosition === "bottom") {
+      return { paddingBottom: insets.bottom };
+    }
+    return {};
+  }, [actualPosition, insets.bottom]);
 
   const roundedClass = useMemo(() => {
     if (rounded === "none") return "";
@@ -195,7 +191,7 @@ const AppNavigation: React.FC<AppNavigationProps> = ({
       className={`${navigationStyle({
         position: actualPosition,
       })}`}
-      // style={containerStyle2}
+      style={safeAreaPadding}
     >
       <View
         className={`${containerStyle({
