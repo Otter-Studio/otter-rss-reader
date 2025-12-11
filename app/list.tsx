@@ -7,113 +7,113 @@ import { Spinner } from "@/components/ui/spinner";
 import { Pressable } from "@/components/ui/pressable";
 import { getReader } from "@/api";
 import { SettingsOperations } from "@/db";
-import { tv } from "tailwind-variants";
-
-// ========== 样式定义 ==========
+import { tva } from "@gluestack-ui/utils/nativewind-utils";
 
 /** 主容器 */
-const container = tv({ base: "flex-1 bg-background-0 dark:bg-background-800" });
+const container = tva({
+  base: "flex-1 bg-background-0 dark:bg-background-800",
+});
 
 /** 头部 */
-const header = tv({
+const header = tva({
   base: "px-4 py-6 border-b border-outline-200 dark:border-outline-700 bg-background-100 dark:bg-background-900",
 });
 
 /** 标题 */
-const title = tv({
+const title = tva({
   base: "text-3xl font-bold text-typography-900 dark:text-typography-0",
 });
 
 /** 副标题 */
-const subtitle = tv({
+const subtitle = tva({
   base: "text-sm text-typography-500 dark:text-typography-400",
 });
 
 /** Loading 容器 */
-const loadingContainer = tv({
+const loadingContainer = tva({
   base: "flex-1 bg-background-0 dark:bg-background-800 flex justify-center items-center",
 });
 
 /** Loading 内容 */
-const loadingContent = tv({ base: "items-center" });
+const loadingContent = tva({ base: "items-center" });
 
 /** Loading 文字 */
-const loadingText = tv({
+const loadingText = tva({
   base: "text-typography-600 dark:text-typography-300 mt-4",
 });
 
 /** 错误容器 */
-const errorContainer = tv({
+const errorContainer = tva({
   base: "flex-1 bg-background-0 dark:bg-background-800 p-6 flex items-center",
 });
 
 /** 错误卡片 */
-const errorCard = tv({
+const errorCard = tva({
   base: "w-full rounded-lg bg-error-50 dark:bg-error-900 p-6 border border-error-200 dark:border-error-700",
 });
 
 /** 错误标题 */
-const errorTitle = tv({
+const errorTitle = tva({
   base: "text-xl font-bold text-error-600 dark:text-error-300",
 });
 
 /** 错误文字 */
-const errorMessage = tv({
+const errorMessage = tva({
   base: "text-base text-error-700 dark:text-error-200 mt-3 leading-relaxed",
 });
 
 /** Feed 项目 */
-const feedItem = tv({
-  base: "px-4 py-3 border-b border-outline-200 dark:border-outline-700 active:bg-background-100 dark:active:bg-background-700 transition-colors",
+const feedItem = tva({
+  base: "px-4 py-3 border-b border-outline-200 dark:border-outline-700 transition-colors",
 });
 
 /** Feed 项目容器 */
-const feedItemRow = tv({ base: "flex-row justify-between items-start" });
+const feedItemRow = tva({ base: "flex-row justify-between items-start" });
 
 /** Feed 内容 */
-const feedContent = tv({ base: "flex-1" });
+const feedContent = tva({ base: "flex-1" });
 
 /** Feed 标题 */
-const feedTitle = tv({
+const feedTitle = tva({
   base: "text-base font-semibold text-typography-900 dark:text-typography-0",
 });
 
 /** Feed 描述 */
-const feedDescription = tv({
+const feedDescription = tva({
   base: "text-sm text-typography-500 dark:text-typography-400 mt-1 line-clamp-2",
 });
 
 /** 未读徽章 */
-const unreadBadge = tv({
+const unreadBadge = tva({
   base: "bg-primary-500 dark:bg-primary-600 rounded-full px-2.5 py-1 ml-2",
 });
 
 /** 未读文字 */
-const unreadText = tv({
+const unreadText = tva({
   base: "text-xs font-semibold text-typography-0 dark:text-typography-900",
 });
 
 /** 空状态容器 */
-const emptyContainer = tv({ base: "flex-1 justify-center items-center px-4" });
+const emptyContainer = tva({ base: "flex-1 justify-center items-center px-4" });
 
 /** 空状态内容 */
-const emptyContent = tv({ base: "items-center" });
+const emptyContent = tva({ base: "items-center" });
 
 /** 空状态 emoji */
-const emptyEmoji = tv({ base: "text-4xl mb-4" });
+const emptyEmoji = tva({ base: "text-4xl mb-4" });
 
 /** 空状态标题 */
-const emptyTitle = tv({
+const emptyTitle = tva({
   base: "text-lg font-semibold text-typography-900 dark:text-typography-0",
 });
 
 /** 空状态文字 */
-const emptyText = tv({
+const emptyText = tva({
   base: "text-sm text-typography-500 dark:text-typography-400 mt-2 text-center",
 });
 
 /** FlatList */
-const flatList = tv({ base: "flex-1" });
+const flatList = tva({ base: "flex-1" });
 
 // ========== 组件 ==========
 
@@ -195,10 +195,10 @@ export default function ListPage() {
 
   if (loading) {
     return (
-      <Box className={loadingContainer()}>
-        <Box className={loadingContent()}>
+      <Box className={loadingContainer({})}>
+        <Box className={loadingContent({})}>
           <Spinner size="large" />
-          <Text className={loadingText()}>加载中...</Text>
+          <Text className={loadingText({})}>加载中...</Text>
         </Box>
       </Box>
     );
@@ -206,10 +206,10 @@ export default function ListPage() {
 
   if (error) {
     return (
-      <Box className={errorContainer()}>
-        <Box className={errorCard()}>
+      <Box className={errorContainer({})}>
+        <Box className={errorCard({})}>
           <Text className={errorTitle()}>⚠️ 加载失败</Text>
-          <Text className={errorMessage()}>{error}</Text>
+          <Text className={errorMessage({})}>{error}</Text>
         </Box>
       </Box>
     );
@@ -235,12 +235,12 @@ export default function ListPage() {
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         style={{ zIndex: 1 }}
       >
-        <Box className={feedItem()}>
-          <Box className={feedItemRow()}>
-            <Box className={feedContent()}>
-              <Text className={feedTitle()}>{item.title}</Text>
+        <Box className={feedItem({})}>
+          <Box className={feedItemRow({})}>
+            <Box className={feedContent({})}>
+              <Text className={feedTitle({})}>{item.title}</Text>
               {item.description && (
-                <Text className={feedDescription()}>{item.description}</Text>
+                <Text className={feedDescription({})}>{item.description}</Text>
               )}
             </Box>
             {item.unread_count !== undefined && item.unread_count > 0 && (
@@ -255,24 +255,24 @@ export default function ListPage() {
   );
 
   return (
-    <Box className={container()}>
+    <Box className={container({})}>
       {/* 头部 */}
-      <Box className={header()}>
+      <Box className={header({})}>
         <Box className="mb-2">
-          <Text className={title()}>📰 订阅列表</Text>
+          <Text className={title({})}>📰 订阅列表</Text>
         </Box>
-        <Text className={subtitle()}>
+        <Text className={subtitle({})}>
           {feeds.length > 0 ? `共 ${feeds.length} 个订阅源` : "还没有任何订阅"}
         </Text>
       </Box>
 
       {/* 内容 */}
       {feeds.length === 0 ? (
-        <Box className={emptyContainer()}>
-          <Box className={emptyContent()}>
-            <Text className={emptyEmoji()}>📭</Text>
-            <Text className={emptyTitle()}>暂无订阅源</Text>
-            <Text className={emptyText()}>在设置中添加 RSS 源以开始阅读</Text>
+        <Box className={emptyContainer({})}>
+          <Box className={emptyContent({})}>
+            <Text className={emptyEmoji({})}>📭</Text>
+            <Text className={emptyTitle({})}>暂无订阅源</Text>
+            <Text className={emptyText({})}>在设置中添加 RSS 源以开始阅读</Text>
           </Box>
         </Box>
       ) : (
@@ -280,7 +280,7 @@ export default function ListPage() {
           data={feeds}
           renderItem={renderFeedItem}
           keyExtractor={(item) => item.id}
-          className={flatList()}
+          className={flatList({})}
         />
       )}
     </Box>
