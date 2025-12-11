@@ -65,11 +65,6 @@ const errorMessage = tva({
 /** Feed 项目 */
 const feedItem = tva({
   base: "px-4 py-3 border-b border-outline-200 dark:border-outline-700 transition-colors",
-  variants: {
-    isActive: {
-      true: "bg-background-100 dark:bg-background-900",
-    },
-  },
 });
 
 /** Feed 项目容器 */
