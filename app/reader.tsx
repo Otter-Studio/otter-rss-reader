@@ -123,20 +123,20 @@ export default function ReaderPage() {
   };
 
   return (
-    <View className={container()} {...panResponder.panHandlers}>
+    <View className={container()}>
       <ArticleReader
         articles={articles}
         currentIndex={currentIndex}
-        onPreviousPress={() => {
-          console.log("Previous pressed, current index:", currentIndex);
-          currentIndex > 0 && setCurrentIndex(currentIndex - 1);
-        }}
-        onNextPress={() => {
-          console.log("Next pressed, current index:", currentIndex);
-          currentIndex < articles.length - 1 &&
-            setCurrentIndex(currentIndex + 1);
-        }}
-        onRandomPress={handleRandomArticle}
+        // onPreviousPress={() => {
+        //   console.log("Previous pressed, current index:", currentIndex);
+        //   currentIndex > 0 && setCurrentIndex(currentIndex - 1);
+        // }}
+        // onNextPress={() => {
+        //   console.log("Next pressed, current index:", currentIndex);
+        //   currentIndex < articles.length - 1 &&
+        //     setCurrentIndex(currentIndex + 1);
+        // }}
+        // onRandomPress={handleRandomArticle}
       />
     </View>
   );

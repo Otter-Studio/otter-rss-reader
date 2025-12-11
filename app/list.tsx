@@ -244,8 +244,8 @@ export default function ListPage() {
               )}
             </Box>
             {item.unread_count !== undefined && item.unread_count > 0 && (
-              <Box className={unreadBadge()}>
-                <Text className={unreadText()}>{item.unread_count}</Text>
+              <Box className={unreadBadge({})}>
+                <Text className={unreadText({})}>{item.unread_count}</Text>
               </Box>
             )}
           </Box>
