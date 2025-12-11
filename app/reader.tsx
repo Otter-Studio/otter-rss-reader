@@ -25,7 +25,10 @@ const loadingContainer = tv({
 // ========== 组件 ==========
 
 export default function ReaderPage() {
-  const params = useLocalSearchParams<{ feedId?: string; feedTitle?: string }>();
+  const params = useLocalSearchParams<{
+    feedId?: string;
+    feedTitle?: string;
+  }>();
 
   const [articles, setArticles] = useState<ArticleItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -55,7 +58,7 @@ export default function ReaderPage() {
         setLoading(true);
         setError(null);
 
-  const feedId = params.feedId;
+        const feedId = params.feedId;
         if (!feedId) {
           setError("Feed ID 未提供");
           setLoading(false);

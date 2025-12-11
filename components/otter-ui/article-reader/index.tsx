@@ -128,56 +128,6 @@ export const ArticleReader = ({
       <ScrollView className={content()}>
         <Text className={contentText()}>{contentHTML}</Text>
       </ScrollView>
-
-      {/* 底部导航和计数 */}
-      <Box className={footer()}>
-        <Pressable
-          onPress={() => {
-            console.log("Previous button pressed, disabled:", currentIndex === 0);
-            if (currentIndex > 0) {
-              onPreviousPress?.();
-            }
-          }}
-          disabled={currentIndex === 0}
-        >
-          <Box className={currentIndex === 0 ? buttonDisabled() : button()}>
-            <Text className={buttonText()}>上一篇</Text>
-          </Box>
-        </Pressable>
-
-        <Pressable
-          onPress={() => {
-            console.log("Random button pressed");
-            onRandomPress?.();
-          }}
-        >
-          <Box className={button()}>
-            <Text className={buttonText()}>🎲</Text>
-          </Box>
-        </Pressable>
-
-        <Text className={counter()}>
-          {currentIndex + 1} / {articles.length}
-        </Text>
-
-        <Pressable
-          onPress={() => {
-            console.log("Next button pressed, disabled:", currentIndex === articles.length - 1);
-            if (currentIndex < articles.length - 1) {
-              onNextPress?.();
-            }
-          }}
-          disabled={currentIndex === articles.length - 1}
-        >
-          <Box
-            className={
-              currentIndex === articles.length - 1 ? buttonDisabled() : button()
-            }
-          >
-            <Text className={buttonText()}>下一篇</Text>
-          </Box>
-        </Pressable>
-      </Box>
     </Box>
   );
 };
