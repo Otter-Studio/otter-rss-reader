@@ -191,6 +191,7 @@ const AppNavigation: React.FC<AppNavigationProps> = ({
       className={`${navigationStyle({
         position: actualPosition,
       })}`}
+      pointerEvents="box-none"
       style={safeAreaPadding}
     >
       <View
@@ -200,6 +201,7 @@ const AppNavigation: React.FC<AppNavigationProps> = ({
           border,
           margin,
         })} ${roundedClass}`}
+        pointerEvents="auto"
       >
         {limitedItems.map((item) => {
           const isActive = activeKey === item.key;

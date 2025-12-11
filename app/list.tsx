@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
+import { useRouter, Link } from "expo-router";
 import { Box } from "@/components/ui/box";
 import { Text } from "@/components/ui/text";
 import { FlatList } from "@/components/ui/flat-list";
 import { Spinner } from "@/components/ui/spinner";
+import { Pressable } from "@/components/ui/pressable";
 import { getReader } from "@/api";
 import { SettingsOperations } from "@/db";
 import { tv } from "tailwind-variants";
@@ -123,6 +125,7 @@ interface Feed {
 }
 
 export default function ListPage() {
+  const router = useRouter();
   const [feeds, setFeeds] = useState<Feed[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -213,21 +216,42 @@ export default function ListPage() {
   }
 
   const renderFeedItem = ({ item }: { item: Feed }) => (
-    <Box className={feedItem()}>
-      <Box className={feedItemRow()}>
-        <Box className={feedContent()}>
-          <Text className={feedTitle()}>{item.title}</Text>
-          {item.description && (
-            <Text className={feedDescription()}>{item.description}</Text>
-          )}
-        </Box>
-        {item.unread_count !== undefined && item.unread_count > 0 && (
-          <Box className={unreadBadge()}>
-            <Text className={unreadText()}>{item.unread_count}</Text>
+    <Link
+      href={{
+        pathname: "/reader",
+        params: { feedId: item.id, feedTitle: item.title },
+      }}
+      asChild
+    >
+      <Pressable
+        onPress={() => {
+          console.log("Feed item pressed:", item.id, item.title);
+          router.push({
+            pathname: "/reader",
+            params: { feedId: item.id, feedTitle: item.title },
+          });
+        }}
+        android_ripple={{ color: "rgba(0, 0, 0, 0.1)" }}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        style={{ zIndex: 1 }}
+      >
+        <Box className={feedItem()}>
+          <Box className={feedItemRow()}>
+            <Box className={feedContent()}>
+              <Text className={feedTitle()}>{item.title}</Text>
+              {item.description && (
+                <Text className={feedDescription()}>{item.description}</Text>
+              )}
+            </Box>
+            {item.unread_count !== undefined && item.unread_count > 0 && (
+              <Box className={unreadBadge()}>
+                <Text className={unreadText()}>{item.unread_count}</Text>
+              </Box>
+            )}
           </Box>
-        )}
-      </Box>
-    </Box>
+        </Box>
+      </Pressable>
+    </Link>
   );
 
   return (

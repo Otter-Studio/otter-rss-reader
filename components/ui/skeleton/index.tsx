@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useRef } from 'react';
 import type { VariantProps } from '@gluestack-ui/utils/nativewind-utils';
 import { Animated, Easing, Platform, View } from 'react-native';
 import { skeletonStyle, skeletonTextStyle } from './styles';
@@ -32,25 +32,26 @@ const Skeleton = forwardRef<
   },
   ref
 ) {
-  const pulseAnim = new Animated.Value(1);
+  // 使用 useRef 将动画值保持在组件生命周期中，避免每次渲染都创建新的实例
+  const pulseAnimRef = useRef(new Animated.Value(1)).current;
   const customTimingFunction = Easing.bezier(0.4, 0, 0.6, 1);
   const fadeDuration = 0.6;
   const animationDuration = (fadeDuration * 10000) / Number(speed); // Convert seconds to milliseconds
 
   const pulse = Animated.sequence([
-    Animated.timing(pulseAnim, {
+    Animated.timing(pulseAnimRef, {
       toValue: 1, // Start with opacity 1
       duration: animationDuration / 2, // Third of the animation duration
       easing: customTimingFunction,
       useNativeDriver: Platform.OS !== 'web',
     }),
-    Animated.timing(pulseAnim, {
+    Animated.timing(pulseAnimRef, {
       toValue: 0.75,
       duration: animationDuration / 2, // Third of the animation duration
       easing: customTimingFunction,
       useNativeDriver: Platform.OS !== 'web',
     }),
-    Animated.timing(pulseAnim, {
+    Animated.timing(pulseAnimRef, {
       toValue: 1,
       duration: animationDuration / 2, // Third of the animation duration
       easing: customTimingFunction,
@@ -62,7 +63,7 @@ const Skeleton = forwardRef<
     Animated.loop(pulse).start();
     return (
       <Animated.View
-        style={{ opacity: pulseAnim }}
+        style={{ opacity: pulseAnimRef }}
         className={`${startColor} ${skeletonStyle({
           variant,
           class: className,

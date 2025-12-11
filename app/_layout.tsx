@@ -84,7 +84,7 @@ function RootLayoutNav() {
     {
       icon: <Icon as={BookOpenText} size="lg" />,
       title: "阅读",
-      key: "learn",
+      key: "reader",
     },
     {
       icon: <Icon as={SquareLibrary} size="lg" />,
@@ -99,13 +99,13 @@ function RootLayoutNav() {
   ];
 
   // 根据当前路径获取 activeKey
-  const activeKey = pathname.includes("learn")
-    ? "learn"
+  const activeKey = pathname.includes("reader")
+    ? "reader"
     : pathname.includes("list")
     ? "list"
     : pathname.includes("settings")
     ? "settings"
-    : "learn";
+    : "reader";
 
   return (
     <SafeAreaProvider>
@@ -117,7 +117,7 @@ function RootLayoutNav() {
             <Box
               className={`flex-1 bg-background-0 dark:bg-background-800 flex flex-col`}
             >
-              <Box className="flex-1">
+              <Box className="flex-1 pb-24">
                 <Slot />
               </Box>
               <AppNavigation
