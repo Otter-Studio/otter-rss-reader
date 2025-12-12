@@ -199,7 +199,7 @@ export default function TagsPage() {
     return (
       <Box className={errorContainer({})}>
         <Box className={errorCard({})}>
-          <Text className={errorTitle()}>⚠️ 加载失败</Text>
+          <Text className={errorTitle({})}>⚠️ 加载失败</Text>
           <Text className={errorMessage({})}>{error}</Text>
         </Box>
       </Box>

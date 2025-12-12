@@ -267,7 +267,7 @@ export default function FeedsPage() {
     return (
       <Box className={errorContainer({})}>
         <Box className={errorCard({})}>
-          <Text className={errorTitle()}>⚠️ 加载失败</Text>
+          <Text className={errorTitle({})}>⚠️ 加载失败</Text>
           <Text className={errorMessage({})}>{error?.message}</Text>
         </Box>
       </Box>

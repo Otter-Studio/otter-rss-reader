@@ -57,7 +57,7 @@ export default function ReaderPage() {
 
   if (loading) {
     return (
-      <Box className={loadingContainer()}>
+      <Box className={loadingContainer({})}>
         <VStack className="items-center">
           <Spinner size="large" />
           <Text className="text-typography-600 dark:text-typography-300 mt-4">
@@ -70,7 +70,7 @@ export default function ReaderPage() {
 
   if (error) {
     return (
-      <Box className={loadingContainer()}>
+      <Box className={loadingContainer({})}>
         <VStack className="items-center">
           <Text className="text-lg font-bold text-error-600 dark:text-error-300">
             ⚠️ 加载失败
@@ -85,7 +85,7 @@ export default function ReaderPage() {
 
   if (!item) {
     return (
-      <Box className={loadingContainer()}>
+      <Box className={loadingContainer({})}>
         <VStack className="items-center">
           <Text className="text-lg font-bold text-typography-600 dark:text-typography-300">
             找不到文章
