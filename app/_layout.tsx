@@ -84,8 +84,8 @@ function RootLayoutNav() {
   const navigationItems = [
     {
       icon: <Icon as={BookOpenText} size="lg" />,
-      title: "阅读",
-      key: "reader",
+      title: "文章",
+      key: "items",
     },
     {
       icon: <Icon as={SquareLibrary} size="lg" />,
@@ -100,13 +100,13 @@ function RootLayoutNav() {
   ];
 
   // 根据当前路径获取 activeKey
-  const activeKey = pathname.includes("reader")
-    ? "reader"
+  const activeKey = pathname.includes("items")
+    ? "items"
     : pathname.includes("feeds")
     ? "feeds"
     : pathname.includes("settings")
     ? "settings"
-    : "reader";
+    : "items";
 
   return (
     <SafeAreaProvider>

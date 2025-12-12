@@ -1,12 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useLocalSearchParams, useRouter, Link } from "expo-router";
 import { Box } from "@/components/ui/box";
 import { Text } from "@/components/ui/text";
 import { FlatList } from "@/components/ui/flat-list";
 import { Spinner } from "@/components/ui/spinner";
 import { Pressable } from "@/components/ui/pressable";
-import { getReader } from "@/api";
-import { SettingsOperations } from "@/db";
+import { useCachedItems } from "@/hooks/useCache";
 import { tva } from "@gluestack-ui/utils/nativewind-utils";
 
 /** 主容器 */
@@ -106,87 +105,43 @@ const flatList = tva({ base: "flex-1" });
 
 // ========== 组件 ==========
 
-interface Item {
+interface Article {
   id: string;
   title: string;
-  summary?: string;
+  summary?: {
+    content?: string;
+  };
   published?: number;
   author?: string;
   content?: string;
+  origin?: {
+    title?: string;
+    streamId?: string;
+  };
 }
 
 export default function ItemsPage() {
   const router = useRouter();
-  const { tagId, tagName } = useLocalSearchParams();
-  const [items, setItems] = useState<Item[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { tagId, tagName, feedId } = useLocalSearchParams();
+  const [refreshing, setRefreshing] = useState(false);
+  
+  // 根据参数选择过滤条件
+  const cacheOptions = tagId 
+    ? { categoryId: tagId as string }
+    : feedId 
+    ? { feedId: feedId as string }
+    : undefined;
 
-  useEffect(() => {
-    const fetchItems = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+  const { items, total, loading, error, refresh } = useCachedItems(cacheOptions);
 
-        // 先检查用户信息是否已配置
-        const userInfo = await SettingsOperations.getUserInfo();
-
-        if (!userInfo || !userInfo.baseUrl) {
-          setError(
-            "API 服务器未配置。请先在设置中配置 Server URL、用户名和密码。"
-          );
-          setLoading(false);
-          return;
-        }
-
-        if (!userInfo.username || !userInfo.password) {
-          setError("用户名或密码未配置。请先在设置中完整配置认证信息。");
-          setLoading(false);
-          return;
-        }
-
-        // 获取 API 实例
-        const reader = await getReader();
-
-        // 根据 tagId 获取文章列表
-        let itemsData = [];
-        if (tagId && typeof tagId === "string") {
-          // 如果有 tagId，先获取该标签下的所有feed，然后获取这些feed的文章
-          // 这里作为示例，实际实现可能需要根据 API 的具体支持
-          itemsData = (await reader.getItems?.(tagId)) || [];
-        } else {
-          // 获取所有文章 - 这需要遍历所有feed
-          const feeds = await reader.getFeeds();
-          const allItems: any[] = [];
-
-          for (const feed of feeds) {
-            try {
-              const feedItems = await reader.getItems(feed.id);
-              allItems.push(...feedItems);
-            } catch (err) {
-              console.error(`Failed to fetch items for feed ${feed.id}:`, err);
-            }
-          }
-          itemsData = allItems;
-        }
-
-        setItems(itemsData || []);
-        console.log("获取到的 Items:", itemsData);
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : "获取文章列表失败";
-        console.error("获取文章列表出错:", err);
-
-        let userMessage = `获取文章列表失败: ${errorMessage}`;
-
-        setError(userMessage);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchItems();
-  }, [tagId]);
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await refresh();
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -204,7 +159,7 @@ export default function ItemsPage() {
       <Box className={errorContainer({})}>
         <Box className={errorCard({})}>
           <Text className={errorTitle()}>⚠️ 加载失败</Text>
-          <Text className={errorMessage({})}>{error}</Text>
+          <Text className={errorMessage({})}>{error.message}</Text>
         </Box>
       </Box>
     );
@@ -219,7 +174,7 @@ export default function ItemsPage() {
     });
   };
 
-  const renderItemCard = ({ item }: { item: Item }) => (
+  const renderItemCard = ({ item }: { item: Article }) => (
     <Link
       href={{
         pathname: "/reader",
@@ -242,14 +197,14 @@ export default function ItemsPage() {
           <Text className={itemTitle({})} numberOfLines={2}>
             {item.title}
           </Text>
-          {item.summary && (
+          {item.summary?.content && (
             <Text className={itemDescription({})} numberOfLines={2}>
-              {item.summary}
+              {item.summary.content}
             </Text>
           )}
           <Box className="flex-row justify-between items-center">
             <Text className={itemMeta({})}>
-              {item.author && `作者: ${item.author}`}
+              {item.origin?.title || "未知来源"}
             </Text>
             <Text className={itemMeta({})}>{formatDate(item.published)}</Text>
           </Box>
@@ -266,7 +221,7 @@ export default function ItemsPage() {
           <Text className={title({})}>📄 文章</Text>
         </Box>
         <Text className={subtitle({})}>
-          {tagName ? `标签: ${tagName}` : "所有文章"} • {items.length} 篇
+          全部文章 · {total} 篇
         </Text>
       </Box>
 
@@ -288,6 +243,15 @@ export default function ItemsPage() {
           keyExtractor={(item) => item.id}
           className={flatList({})}
           scrollIndicatorInsets={{ right: 1 }}
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
+          ListFooterComponent={
+            <Box className="h-8 flex justify-center items-center mb-4">
+              <Text className="text-xs text-typography-500 dark:text-typography-400">
+                {items.length} / {total} 篇文章
+              </Text>
+            </Box>
+          }
         />
       )}
     </Box>

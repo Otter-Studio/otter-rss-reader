@@ -1,3 +1,4 @@
-import ReaderPage from "./reader";
-// 默认展示阅读页面
-export default ReaderPage;
+import ItemsPage from "./items";
+
+// 默认展示文章列表页面
+export default ItemsPage;
