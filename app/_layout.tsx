@@ -19,6 +19,7 @@ import { SquareLibrary, Settings, BookOpenText } from "lucide-react-native";
 import { dbManager } from "@/db/database";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { ThemeProvider, useThemeContext } from "@/components/ThemeContext";
+import { CacheContextProvider } from "@/hooks/useCache/context";
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -109,26 +110,28 @@ function RootLayoutNav() {
 
   return (
     <SafeAreaProvider>
-      <GluestackUIProvider mode={colorMode}>
-        <NavigationThemeProvider
-          value={colorMode === "dark" ? DarkTheme : DefaultTheme}
-        >
-          <SafeAreaView style={{ flex: 1 }} edges={["top", "left", "right"]}>
-            <Box
-              className={`flex-1 bg-background-0 dark:bg-background-800 flex flex-col`}
-            >
-              <Box className="flex-1 pb-24">
-                <Slot />
+      <CacheContextProvider>
+        <GluestackUIProvider mode={colorMode}>
+          <NavigationThemeProvider
+            value={colorMode === "dark" ? DarkTheme : DefaultTheme}
+          >
+            <SafeAreaView style={{ flex: 1 }} edges={["top", "left", "right"]}>
+              <Box
+                className={`flex-1 bg-background-0 dark:bg-background-800 flex flex-col`}
+              >
+                <Box className="flex-1 pb-24">
+                  <Slot />
+                </Box>
+                <AppNavigation
+                  items={navigationItems}
+                  onItemPress={(key) => router.navigate(`/${key}` as any)}
+                  activeKey={activeKey}
+                />
               </Box>
-              <AppNavigation
-                items={navigationItems}
-                onItemPress={(key) => router.navigate(`/${key}` as any)}
-                activeKey={activeKey}
-              />
-            </Box>
-          </SafeAreaView>
-        </NavigationThemeProvider>
-      </GluestackUIProvider>
+            </SafeAreaView>
+          </NavigationThemeProvider>
+        </GluestackUIProvider>
+      </CacheContextProvider>
     </SafeAreaProvider>
   );
 }

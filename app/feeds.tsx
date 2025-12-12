@@ -1,12 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useRouter, Link } from "expo-router";
 import { Box } from "@/components/ui/box";
 import { Text } from "@/components/ui/text";
 import { FlatList } from "@/components/ui/flat-list";
+import { SectionList } from "@/components/ui/section-list";
 import { Spinner } from "@/components/ui/spinner";
 import { Pressable } from "@/components/ui/pressable";
-import { getReader } from "@/api";
-import { SettingsOperations } from "@/db";
+import { Switch } from "@/components/ui/switch";
+import { useCachedFeeds } from "@/hooks/useCache/useCachedFeeds";
+import { useCachedCategories } from "@/hooks/useCache/useCachedCategories";
+import type { IFeed } from "libseymour";
 import { tva } from "@gluestack-ui/utils/nativewind-utils";
 
 /** 主容器 */
@@ -115,107 +118,67 @@ const emptyText = tva({
 /** FlatList */
 const flatList = tva({ base: "flex-1" });
 
+/** 切换容器 */
+const switchContainer = tva({
+  base: "px-4 py-3 border-b border-outline-200 dark:border-outline-700 flex-row items-center justify-between",
+});
+
+/** 切换标签 */
+const switchLabel = tva({
+  base: "text-sm font-medium text-typography-600 dark:text-typography-300",
+});
+
+/** 分组标题 */
+const groupHeader = tva({
+  base: "px-4 py-2 bg-background-100 dark:bg-background-800 border-t border-outline-200 dark:border-outline-700",
+});
+
+/** 分组标题文字 */
+const groupHeaderText = tva({
+  base: "text-sm font-semibold text-typography-700 dark:text-typography-200",
+});
+
 // ========== 组件 ==========
 
-interface Feed {
-  id: string;
-  title: string;
-  description?: string;
-  unread_count?: number;
+interface FeedWithCategory extends IFeed {
+  categoryLabel?: string;
 }
 
 export default function FeedsPage() {
   const router = useRouter();
-  const [feeds, setFeeds] = useState<Feed[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { feeds, loading, error, refresh } = useCachedFeeds();
+  const { categories } = useCachedCategories();
+  const [isGrouped, setIsGrouped] = useState(false);
 
-  useEffect(() => {
-    const fetchFeeds = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+  // 按分类分组
+  const groupedFeeds = (() => {
+    if (!isGrouped) return [];
 
-        // 先检查用户信息是否已配置
-        const userInfo = await SettingsOperations.getUserInfo();
-        console.log("用户信息:", userInfo);
+    const groups = new Map<
+      string,
+      { title: string; data: FeedWithCategory[] }
+    >();
 
-        if (!userInfo || !userInfo.baseUrl) {
-          setError(
-            "API 服务器未配置。请先在设置中配置 Server URL、用户名和密码。"
-          );
-          setLoading(false);
-          return;
-        }
+    feeds.forEach((feed) => {
+      // 获取分类标签，如果没有则为"未分类"
+      const categoryId = feed.categories?.[0]?.id || "uncategorized";
+      const categoryLabel = feed.categories?.[0]?.label || "未分类";
 
-        if (!userInfo.username || !userInfo.password) {
-          setError("用户名或密码未配置。请先在设置中完整配置认证信息。");
-          setLoading(false);
-          return;
-        }
-
-        // 获取 API 实例
-        console.log("API 已初始化");
-
-        // 调用 API 获取 feeds
-        const reader = await getReader();
-        const feedsData = await reader.getFeeds();
-
-        // 设置数据
-        setFeeds(feedsData || []);
-        console.log("获取到的 Feeds:", feedsData);
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : "获取 feeds 失败";
-        console.error("获取 feeds 出错 - 完整错误:", err);
-        console.error("错误类型:", typeof err);
-        console.error(
-          "错误堆栈:",
-          err instanceof Error ? err.stack : "无堆栈信息"
-        );
-
-        let userMessage = `API 请求失败: ${errorMessage}`;
-
-        if (errorMessage.includes("Bad Request")) {
-          userMessage = `API 服务器返回 Bad Request。请检查：\n1. Server URL 是否正确\n2. 用户名和密码是否正确\n3. API 服务器是否支持 Basic Auth`;
-        } else if (errorMessage.includes("Unauthorized")) {
-          userMessage = `认证失败。请检查用户名和密码是否正确。`;
-        } else if (errorMessage.includes("not configured")) {
-          userMessage = `配置不完整。请在设置中配置 Server URL、用户名和密码。`;
-        }
-
-        setError(userMessage);
-      } finally {
-        setLoading(false);
+      if (!groups.has(categoryId)) {
+        groups.set(categoryId, { title: categoryLabel, data: [] });
       }
-    };
 
-    fetchFeeds();
-  }, []);
+      const group = groups.get(categoryId)!;
+      group.data.push({ ...feed, categoryLabel });
+    });
 
-  if (loading) {
-    return (
-      <Box className={loadingContainer({})}>
-        <Box className={loadingContent({})}>
-          <Spinner size="large" />
-          <Text className={loadingText({})}>加载中...</Text>
-        </Box>
-      </Box>
+    // 按类别标题排序
+    return Array.from(groups.values()).sort((a, b) =>
+      a.title.localeCompare(b.title, "zh-CN")
     );
-  }
+  })();
 
-  if (error) {
-    return (
-      <Box className={errorContainer({})}>
-        <Box className={errorCard({})}>
-          <Text className={errorTitle()}>⚠️ 加载失败</Text>
-          <Text className={errorMessage({})}>{error}</Text>
-        </Box>
-      </Box>
-    );
-  }
-
-  const renderFeedItem = ({ item }: { item: Feed }) => (
+  const renderFeedItem = ({ item }: { item: FeedWithCategory }) => (
     <Link
       href={{
         pathname: "/reader",
@@ -239,20 +202,40 @@ export default function FeedsPage() {
           <Box className={feedItemRow({})}>
             <Box className={feedContent({})}>
               <Text className={feedTitle({})}>{item.title}</Text>
-              {item.description && (
-                <Text className={feedDescription({})}>{item.description}</Text>
-              )}
             </Box>
-            {item.unread_count !== undefined && item.unread_count > 0 && (
-              <Box className={unreadBadge({})}>
-                <Text className={unreadText({})}>{item.unread_count}</Text>
-              </Box>
-            )}
           </Box>
         </Box>
       </Pressable>
     </Link>
   );
+
+  const renderGroupHeader = ({ section }: { section: { title: string } }) => (
+    <Box className={groupHeader({})}>
+      <Text className={groupHeaderText({})}>{section.title}</Text>
+    </Box>
+  );
+
+  if (loading) {
+    return (
+      <Box className={loadingContainer({})}>
+        <Box className={loadingContent({})}>
+          <Spinner size="large" />
+          <Text className={loadingText({})}>加载中...</Text>
+        </Box>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box className={errorContainer({})}>
+        <Box className={errorCard({})}>
+          <Text className={errorTitle()}>⚠️ 加载失败</Text>
+          <Text className={errorMessage({})}>{error?.message}</Text>
+        </Box>
+      </Box>
+    );
+  }
 
   return (
     <Box className={container({})}>
@@ -266,6 +249,21 @@ export default function FeedsPage() {
         </Text>
       </Box>
 
+      {/* 切换开关 */}
+      {feeds.length > 0 && (
+        <Box className={switchContainer({})}>
+          <Text className={switchLabel({})}>
+            {isGrouped ? "按分类分组" : "列表视图"}
+          </Text>
+          <Switch
+            value={isGrouped}
+            onValueChange={setIsGrouped}
+            accessible={true}
+            accessibilityLabel="Toggle between list and grouped view"
+          />
+        </Box>
+      )}
+
       {/* 内容 */}
       {feeds.length === 0 ? (
         <Box className={emptyContainer({})}>
@@ -275,6 +273,14 @@ export default function FeedsPage() {
             <Text className={emptyText({})}>在设置中添加 RSS 源以开始阅读</Text>
           </Box>
         </Box>
+      ) : isGrouped ? (
+        <SectionList
+          sections={groupedFeeds}
+          keyExtractor={(item) => item.id}
+          renderItem={renderFeedItem}
+          renderSectionHeader={renderGroupHeader}
+          className={flatList({})}
+        />
       ) : (
         <FlatList
           data={feeds}
