@@ -5,7 +5,7 @@ import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
 import { tva } from "@gluestack-ui/utils/nativewind-utils";
 import RenderHTML from "react-native-render-html";
-import { useWindowDimensions, ScrollView, useColorScheme } from "react-native";
+import { useWindowDimensions, ScrollView } from "react-native";
 
 const container = tva({
   base: "flex-1 bg-background-0 dark:bg-background-800 flex flex-col",
