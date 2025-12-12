@@ -122,17 +122,18 @@ interface Article {
 
 export default function ItemsPage() {
   const router = useRouter();
-  const { tagId, tagName, feedId } = useLocalSearchParams();
+  const { tagId, tagName, feedId, feedTitle } = useLocalSearchParams();
   const [refreshing, setRefreshing] = useState(false);
-  
+
   // 根据参数选择过滤条件
-  const cacheOptions = tagId 
+  const cacheOptions = tagId
     ? { categoryId: tagId as string }
-    : feedId 
+    : feedId
     ? { feedId: feedId as string }
     : undefined;
 
-  const { items, total, loading, error, refresh } = useCachedItems(cacheOptions);
+  const { items, total, loading, error, refresh } =
+    useCachedItems(cacheOptions);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -221,7 +222,11 @@ export default function ItemsPage() {
           <Text className={title({})}>📄 文章</Text>
         </Box>
         <Text className={subtitle({})}>
-          全部文章 · {total} 篇
+          {feedTitle
+            ? `${feedTitle} · ${total} 篇`
+            : tagName
+            ? `${tagName} · ${total} 篇`
+            : `全部文章 · ${total} 篇`}
         </Text>
       </Box>
 

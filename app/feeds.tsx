@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useRouter, Link } from "expo-router";
+import { useRouter, Link, useLocalSearchParams } from "expo-router";
 import { Box } from "@/components/ui/box";
 import { Text } from "@/components/ui/text";
 import { FlatList } from "@/components/ui/flat-list";
@@ -146,9 +146,17 @@ interface FeedWithCategory extends IFeed {
 
 export default function FeedsPage() {
   const router = useRouter();
+  const { categoryId, categoryName } = useLocalSearchParams();
   const { feeds, loading, error, refresh } = useCachedFeeds();
   const { categories } = useCachedCategories();
   const [isGrouped, setIsGrouped] = useState(false);
+
+  // 如果有 categoryId，过滤订阅源
+  const filteredFeeds = categoryId
+    ? feeds.filter((feed) =>
+        feed.categories?.some((cat) => cat.id === categoryId)
+      )
+    : feeds;
 
   // 按分类分组
   const groupedFeeds = (() => {
@@ -156,19 +164,19 @@ export default function FeedsPage() {
 
     const groups = new Map<
       string,
-      { title: string; data: FeedWithCategory[] }
+      { id: string; title: string; data: FeedWithCategory[] }
     >();
 
-    feeds.forEach((feed) => {
+    filteredFeeds.forEach((feed) => {
       // 获取分类标签，如果没有则为"未分类"
-      const categoryId = feed.categories?.[0]?.id || "uncategorized";
+      const catId = feed.categories?.[0]?.id || "uncategorized";
       const categoryLabel = feed.categories?.[0]?.label || "未分类";
 
-      if (!groups.has(categoryId)) {
-        groups.set(categoryId, { title: categoryLabel, data: [] });
+      if (!groups.has(catId)) {
+        groups.set(catId, { id: catId, title: categoryLabel, data: [] });
       }
 
-      const group = groups.get(categoryId)!;
+      const group = groups.get(catId)!;
       group.data.push({ ...feed, categoryLabel });
     });
 
@@ -181,7 +189,7 @@ export default function FeedsPage() {
   const renderFeedItem = ({ item }: { item: FeedWithCategory }) => (
     <Link
       href={{
-        pathname: "/reader",
+        pathname: "/items",
         params: { feedId: item.id, feedTitle: item.title },
       }}
       asChild
@@ -190,7 +198,7 @@ export default function FeedsPage() {
         onPress={() => {
           console.log("Feed item pressed:", item.id, item.title);
           router.push({
-            pathname: "/reader",
+            pathname: "/items",
             params: { feedId: item.id, feedTitle: item.title },
           });
         }}
@@ -209,10 +217,21 @@ export default function FeedsPage() {
     </Link>
   );
 
-  const renderGroupHeader = ({ section }: { section: { title: string } }) => (
-    <Box className={groupHeader({})}>
-      <Text className={groupHeaderText({})}>{section.title}</Text>
-    </Box>
+  const renderGroupHeader = ({ section }: { section: { id: string; title: string } }) => (
+    <Pressable
+      onPress={() => {
+        router.push({
+          pathname: "/items",
+          params: { categoryId: section.id, categoryName: section.title },
+        });
+      }}
+      android_ripple={{ color: "rgba(0, 0, 0, 0.1)" }}
+      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+    >
+      <Box className={groupHeader({})}>
+        <Text className={groupHeaderText({})}>{section.title}</Text>
+      </Box>
+    </Pressable>
   );
 
   if (loading) {
@@ -245,12 +264,16 @@ export default function FeedsPage() {
           <Text className={title({})}>📰 订阅源</Text>
         </Box>
         <Text className={subtitle({})}>
-          {feeds.length > 0 ? `共 ${feeds.length} 个订阅源` : "还没有任何订阅"}
+          {categoryName
+            ? `${categoryName} · ${filteredFeeds.length} 个订阅源`
+            : filteredFeeds.length > 0
+            ? `共 ${filteredFeeds.length} 个订阅源`
+            : "还没有任何订阅"}
         </Text>
       </Box>
 
       {/* 切换开关 */}
-      {feeds.length > 0 && (
+      {filteredFeeds.length > 0 && (
         <Box className={switchContainer({})}>
           <Text className={switchLabel({})}>
             {isGrouped ? "按分类分组" : "列表视图"}
@@ -265,7 +288,7 @@ export default function FeedsPage() {
       )}
 
       {/* 内容 */}
-      {feeds.length === 0 ? (
+      {filteredFeeds.length === 0 ? (
         <Box className={emptyContainer({})}>
           <Box className={emptyContent({})}>
             <Text className={emptyEmoji({})}>📭</Text>
@@ -283,7 +306,7 @@ export default function FeedsPage() {
         />
       ) : (
         <FlatList
-          data={feeds}
+          data={filteredFeeds}
           renderItem={renderFeedItem}
           keyExtractor={(item) => item.id}
           className={flatList({})}
