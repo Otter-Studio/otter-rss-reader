@@ -18,12 +18,14 @@ export const useCachedTags = (): UseCachedTagsReturn => {
     throw new Error('useCachedTags must be used within CacheContextProvider');
   }
 
-  // 页面初始化时自动加载一次（如果缓存为空）
+  // 页面初始化时自动加载一次（CacheManager 会优先从 DB 加载）
   useEffect(() => {
+    // 只在缓存完全为空时手动触发刷新
+    // CacheManager 初始化时已经触发过一次
     if (context.state.tags.length === 0 && !context.loading.tags) {
       context.refreshTags().catch((err) => console.error('Failed to initialize tags:', err));
     }
-  }, [context]);
+  }, []);
 
   const refresh = async () => {
     setLocalLoading(true);

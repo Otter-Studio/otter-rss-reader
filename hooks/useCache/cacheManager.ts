@@ -4,12 +4,15 @@
  * - 数据从 Reader API 获取
  * - 全局状态管理
  * - 定时刷新
+ * - 数据库本地缓存集成
  */
 
 import { useState, useEffect, useRef } from 'react';
 import type { IFeedItem, IFeed, ITag, IUnreadCount } from 'libseymour';
 import { getReader } from '@/api';
 import type { CacheContextType, CacheState, CacheLoadingState, CacheErrorState, Category } from './types';
+import { FeedOperations } from '@/db/feed';
+import { ArticleOperations } from '@/db/article';
 
 /**
  * 缓存管理器类
@@ -100,6 +103,7 @@ export class CacheManager {
 
   /**
    * 全量刷新：刷新 feeds、items、tags、categories、unreadCounts
+   * 优先从数据库加载，后台异步更新
    */
   async refreshAll(): Promise<void> {
     await Promise.all([
@@ -113,8 +117,41 @@ export class CacheManager {
 
   /**
    * 刷新订阅列表
+   * 策略：
+   * 1. 立即从数据库加载（无阻塞显示）
+   * 2. 设置轻量级加载状态
+   * 3. 后台异步从 API 更新
    */
-  async refreshFeeds(): Promise<void> {
+  async refreshFeeds(isInitialLoad: boolean = false): Promise<void> {
+    // Step 1: 先从数据库快速加载，立即显示（不阻塞 UI）
+    const shouldLoadFromDb = isInitialLoad || this.state.feeds.length === 0;
+
+    if (shouldLoadFromDb) {
+      try {
+        const dbFeeds = await FeedOperations.getActiveFeeds();
+        if (dbFeeds.length > 0) {
+          // 转换 DB 格式到 IFeed 格式并立即显示
+          this.state.feeds = dbFeeds.map((feed: any) => ({
+            id: feed.id,
+            title: feed.title,
+            url: feed.url,
+            htmlUrl: feed.link || '',
+            iconUrl: feed.image || '',
+            categories: feed.category ? [{ id: feed.id, label: feed.category }] : [],
+          })) as any;
+
+          // 轻量级加载状态 - 表示有本地数据
+          if (isInitialLoad) {
+            console.log(`[Cache] Loaded ${dbFeeds.length} feeds from DB (initial)`);
+            this.notify();
+          }
+        }
+      } catch (err) {
+        console.error('[Cache] Failed to load feeds from DB:', err);
+      }
+    }
+
+    // Step 2: 后台异步从 API 更新（不阻塞）
     this.loading.feeds = true;
     this.updateOverallLoading();
     this.notify();
@@ -123,10 +160,17 @@ export class CacheManager {
       const reader = await getReader();
       const feeds = await reader.getFeeds();
       this.state.feeds = feeds;
+
+      // 同时保存到数据库（异步，不等待）
+      this._syncFeedsToDb(feeds).catch((err: any) =>
+        console.warn('[Cache] Failed to sync feeds to DB:', err)
+      );
+
       this.error.feeds = null;
+      console.log(`[Cache] Updated ${feeds.length} feeds from API`);
     } catch (err) {
       this.error.feeds = err instanceof Error ? err : new Error('Unknown error');
-      console.error('Failed to refresh feeds:', err);
+      console.error('[Cache] Failed to refresh feeds from API:', err);
     } finally {
       this.loading.feeds = false;
       this.updateOverallLoading();
@@ -136,8 +180,49 @@ export class CacheManager {
 
   /**
    * 刷新文章列表
+   * 策略：先从数据库加载，后台异步更新
    */
   async refreshItems(feedId?: string): Promise<void> {
+    // Step 1: 先从数据库快速加载
+    const shouldLoadFromDb = this.state.items.length === 0;
+
+    if (shouldLoadFromDb) {
+      try {
+        const dbArticles = feedId
+          ? await ArticleOperations.getArticlesByFeed(feedId)
+          : await ArticleOperations.getRecentArticles(500);
+
+        if (dbArticles.length > 0) {
+          // 转换 DB 格式并立即显示
+          this.state.items = dbArticles.map((article: any) => ({
+            id: article.guid || article.id,
+            title: article.title,
+            published: new Date(article.pub_date).getTime(),
+            author: article.author || '',
+            summary: {
+              content: article.description || '',
+            },
+            canonical: article.link ? [{ href: article.link }] : [],
+            alternate: article.link ? [{ href: article.link }] : [],
+            categories: [],
+            origin: {
+              streamId: article.feed_id,
+              htmlUrl: '',
+              title: '',
+            },
+            crawlTimeMsec: new Date(article.created_at).getTime(),
+            timestampUsec: new Date(article.created_at).getTime() * 1000,
+          })) as any;
+
+          console.log(`[Cache] Loaded ${dbArticles.length} items from DB (feedId: ${feedId || 'all'})`);
+          this.notify();
+        }
+      } catch (err) {
+        console.error('[Cache] Failed to load items from DB:', err);
+      }
+    }
+
+    // Step 2: 后台异步从 API 更新
     this.loading.items = true;
     this.updateOverallLoading();
     this.notify();
@@ -159,7 +244,7 @@ export class CacheManager {
             const feedItems = await reader.getItems(feed.id);
             allItems.push(...feedItems);
           } catch (err) {
-            console.error(`Failed to fetch items for feed ${feed.id}:`, err);
+            console.error(`[Cache] Failed to fetch items for feed ${feed.id}:`, err);
           }
         }
 
@@ -167,10 +252,17 @@ export class CacheManager {
       }
 
       this.state.items = items;
+
+      // 同时保存到数据库（异步，不等待）
+      this._syncArticlesToDb(items).catch((err: any) =>
+        console.warn('[Cache] Failed to sync articles to DB:', err)
+      );
+
       this.error.items = null;
+      console.log(`[Cache] Updated ${items.length} items from API (feedId: ${feedId || 'all'})`);
     } catch (err) {
       this.error.items = err instanceof Error ? err : new Error('Unknown error');
-      console.error('Failed to refresh items:', err);
+      console.error('[Cache] Failed to refresh items from API:', err);
     } finally {
       this.loading.items = false;
       this.updateOverallLoading();
@@ -336,10 +428,23 @@ export class CacheManager {
 
   /**
    * 初始化缓存
+   * 优先从数据库加载，后台异步更新
    */
   async initialize(): Promise<void> {
-    await this.refreshAll();
-    this.startAutoRefresh();
+    try {
+      // Step 1: 从数据库快速加载（无阻塞）
+      console.log('[Cache] Initializing from DB...');
+      await Promise.all([
+        this.refreshFeeds(true),  // 初始加载，优先用 DB
+        this.refreshItems(),
+      ]);
+
+      // Step 2: 启动后台定时刷新
+      this.startAutoRefresh();
+      console.log('[Cache] Initialization complete, auto-refresh started');
+    } catch (err) {
+      console.error('[Cache] Initialization failed:', err);
+    }
   }
 
   /**
@@ -348,6 +453,61 @@ export class CacheManager {
   destroy(): void {
     this.stopAutoRefresh();
     this.listeners.clear();
+  }
+
+  /**
+   * 将 Feed 同步到数据库（异步）
+   */
+  private async _syncFeedsToDb(feeds: IFeed[]): Promise<void> {
+    try {
+      for (const feed of feeds) {
+        const existing = await FeedOperations.getFeedById(feed.id);
+        if (existing) {
+          // 更新现有的 Feed
+          await FeedOperations.updateFeed(feed.id, {
+            title: feed.title,
+            link: feed.htmlUrl,
+            image: feed.iconUrl,
+            category: feed.categories[0]?.label,
+          });
+        } else {
+          // 新增 Feed
+          await FeedOperations.addFeed({
+            title: feed.title,
+            url: feed.url || feed.id,
+            link: feed.htmlUrl,
+            image: feed.iconUrl,
+            category: feed.categories[0]?.label,
+          });
+        }
+      }
+      console.log(`[Cache] Synced ${feeds.length} feeds to DB`);
+    } catch (err) {
+      console.error('[Cache] Error syncing feeds to DB:', err);
+    }
+  }
+
+  /**
+   * 将 Article 同步到数据库（异步）
+   */
+  private async _syncArticlesToDb(items: IFeedItem[]): Promise<void> {
+    try {
+      // 批量添加文章到数据库
+      const articlesToAdd = items.map(item => ({
+        title: item.title,
+        link: item.canonical[0]?.href || item.alternate[0]?.href || item.id,
+        feed_id: item.origin.streamId,
+        description: item.summary?.content || '',
+        author: item.author || '',
+        pub_date: new Date(item.published).toISOString(),
+        guid: item.id,
+      }));
+
+      await ArticleOperations.addArticlesInBatch(articlesToAdd as any);
+      console.log(`[Cache] Synced ${items.length} articles to DB`);
+    } catch (err) {
+      console.error('[Cache] Error syncing articles to DB:', err);
+    }
   }
 }
 
