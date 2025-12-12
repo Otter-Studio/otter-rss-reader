@@ -7,10 +7,12 @@ import { SectionList } from "@/components/ui/section-list";
 import { Spinner } from "@/components/ui/spinner";
 import { Pressable } from "@/components/ui/pressable";
 import { Switch } from "@/components/ui/switch";
+import { Icon } from "@/components/ui/icon";
 import { useCachedFeeds } from "@/hooks/useCache/useCachedFeeds";
 import { useCachedCategories } from "@/hooks/useCache/useCachedCategories";
 import type { IFeed } from "libseymour";
 import { tva } from "@gluestack-ui/utils/nativewind-utils";
+import { ChevronRight } from "lucide-react-native";
 
 /** 主容器 */
 const container = tva({
@@ -71,10 +73,15 @@ const feedItem = tva({
 });
 
 /** Feed 项目容器 */
-const feedItemRow = tva({ base: "flex-row justify-between items-start" });
+const feedItemRow = tva({ base: "flex-row justify-between items-center" });
 
 /** Feed 内容 */
 const feedContent = tva({ base: "flex-1" });
+
+/** Feed 图标 */
+const feedIcon = tva({
+  base: "text-typography-400 dark:text-typography-500 ml-2",
+});
 
 /** Feed 标题 */
 const feedTitle = tva({
@@ -130,12 +137,17 @@ const switchLabel = tva({
 
 /** 分组标题 */
 const groupHeader = tva({
-  base: "px-4 py-2 bg-background-100 dark:bg-background-800 border-t border-outline-200 dark:border-outline-700",
+  base: "px-4 py-2 bg-background-100 dark:bg-background-800 border-t border-outline-200 dark:border-outline-700 flex-row justify-between items-center",
 });
 
 /** 分组标题文字 */
 const groupHeaderText = tva({
   base: "text-sm font-semibold text-typography-700 dark:text-typography-200",
+});
+
+/** 分组图标 */
+const groupIcon = tva({
+  base: "text-typography-400 dark:text-typography-500",
 });
 
 // ========== 组件 ==========
@@ -211,6 +223,7 @@ export default function FeedsPage() {
             <Box className={feedContent({})}>
               <Text className={feedTitle({})}>{item.title}</Text>
             </Box>
+            <Icon as={ChevronRight} size="md" className={feedIcon({})} />
           </Box>
         </Box>
       </Pressable>
@@ -234,6 +247,7 @@ export default function FeedsPage() {
     >
       <Box className={groupHeader({})}>
         <Text className={groupHeaderText({})}>{section.title}</Text>
+        <Icon as={ChevronRight} size="md" className={groupIcon({})} />
       </Box>
     </Pressable>
   );
