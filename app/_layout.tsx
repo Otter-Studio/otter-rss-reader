@@ -88,7 +88,7 @@ function RootLayoutNav() {
     },
     {
       icon: <Icon as={SquareLibrary} size="lg" />,
-      title: "订阅源",
+      title: "订阅",
       key: "feeds",
     },
     {
