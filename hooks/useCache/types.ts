@@ -98,6 +98,50 @@ export interface UseCachedItemReturn {
 }
 
 /**
+ * useCachedItems 查询选项 - 根据条件获取文章列表
+ */
+export interface UseCachedItemsOptions {
+  // 基础过滤条件
+  categoryId?: string; // 分类ID
+  feedId?: string; // 订阅ID（feed.id）
+  tagIds?: string[]; // 标签ID列表（tag.id）
+
+  // 高级选项（预留）
+  options?: {
+    // 读取状态
+    readStatus?: 'all' | 'unread' | 'read';
+    // 星标状态
+    starredStatus?: 'all' | 'starred' | 'unstarred';
+    // 搜索关键词
+    searchText?: string;
+    // 排序方式
+    sortBy?: 'date' | 'title';
+    sortOrder?: 'asc' | 'desc';
+    // 分页
+    limit?: number;
+    offset?: number;
+    // 日期范围（timestamp 毫秒或秒）
+    dateRange?: {
+      start?: number;
+      end?: number;
+    };
+    // 作者过滤
+    author?: string;
+  };
+}
+
+/**
+ * useCachedItems 返回类型 - 获取过滤后的文章列表
+ */
+export interface UseCachedItemsReturn {
+  items: IFeedItem[];
+  total: number;
+  loading: boolean;
+  error: Error | null;
+  refresh: () => Promise<void>;
+}
+
+/**
  * useCachedTags 返回类型
  */
 export interface UseCachedTagsReturn {
@@ -120,4 +164,4 @@ export interface UseCachedCategoriesReturn {
 /**
  * useCacheController 返回类型
  */
-export interface UseCacheControllerReturn extends CacheContextType {}
+export interface UseCacheControllerReturn extends CacheContextType { }
