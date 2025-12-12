@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useRef } from "react";
 import { useLocalSearchParams } from "expo-router";
 import { PanResponder, View } from "react-native";
 import { Box } from "@/components/ui/box";
@@ -9,7 +9,7 @@ import {
   ArticleReader,
   ArticleItem,
 } from "@/components/otter-ui/article-reader";
-import { getReader } from "@/api";
+import { useCachedItem } from "@/hooks/useCache";
 import { tv } from "tailwind-variants";
 
 // ========== 样式定义 ==========
@@ -26,68 +26,34 @@ const loadingContainer = tv({
 
 export default function ReaderPage() {
   const params = useLocalSearchParams<{
-    feedId?: string;
-    feedTitle?: string;
+    itemId?: string;
   }>();
 
-  const [articles, setArticles] = useState<ArticleItem[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const itemId = params.itemId;
+
+  if (!itemId) {
+    return (
+      <Box className={loadingContainer()}>
+        <VStack className="items-center">
+          <Text className="text-error-600 dark:text-error-300 text-lg font-bold">
+            文章 ID 未提供
+          </Text>
+        </VStack>
+      </Box>
+    );
+  }
+
+  const { item, loading, error, refresh } = useCachedItem({ id: itemId });
 
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: () => true,
       onPanResponderRelease: (evt, gestureState) => {
-        // 上滑切换到下一篇
-        if (gestureState.dy < -50 && currentIndex < articles.length - 1) {
-          setCurrentIndex(currentIndex + 1);
-        }
-        // 下滑切换到上一篇
-        if (gestureState.dy > 50 && currentIndex > 0) {
-          setCurrentIndex(currentIndex - 1);
-        }
+        // 保留手势支持，后续可扩展
       },
     })
   ).current;
-
-  useEffect(() => {
-    const fetchArticles = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const feedId = params.feedId;
-        if (!feedId) {
-          setError("Feed ID 未提供");
-          setLoading(false);
-          return;
-        }
-
-        const reader = await getReader();
-        const items = await reader.getItems(feedId, { num: 50 });
-
-        setArticles(items || []);
-        // 随机显示一篇文章
-        if (items && items.length > 0) {
-          const randomIndex = Math.floor(Math.random() * items.length);
-          setCurrentIndex(randomIndex);
-        } else {
-          setCurrentIndex(0);
-        }
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : "获取文章失败";
-        console.error("获取文章出错:", err);
-        setError(`获取文章失败: ${errorMessage}`);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchArticles();
-  }, [params.feedId]);
 
   if (loading) {
     return (
@@ -104,40 +70,46 @@ export default function ReaderPage() {
 
   if (error) {
     return (
-      <Box className={container()}>
-        <VStack className="flex-1 justify-center items-center px-4">
+      <Box className={loadingContainer()}>
+        <VStack className="items-center">
           <Text className="text-lg font-bold text-error-600 dark:text-error-300">
-            {error}
+            ⚠️ 加载失败
+          </Text>
+          <Text className="text-sm text-error-500 dark:text-error-400 mt-2">
+            {error.message}
           </Text>
         </VStack>
       </Box>
     );
   }
 
-  const handleRandomArticle = () => {
-    if (articles.length > 0) {
-      const randomIndex = Math.floor(Math.random() * articles.length);
-      console.log("Random article:", randomIndex, articles[randomIndex]?.title);
-      setCurrentIndex(randomIndex);
-    }
-  };
+  if (!item) {
+    return (
+      <Box className={loadingContainer()}>
+        <VStack className="items-center">
+          <Text className="text-lg font-bold text-typography-600 dark:text-typography-300">
+            找不到文章
+          </Text>
+        </VStack>
+      </Box>
+    );
+  }
+
+  // 将单个 item 转换为 ArticleItem 数组格式
+  const articles: ArticleItem[] = [
+    {
+      id: item.id,
+      title: item.title,
+      summary: item.summary,
+      published: item.published,
+      author: item.author,
+      origin: item.origin,
+    },
+  ];
 
   return (
-    <View className={container()}>
-      <ArticleReader
-        articles={articles}
-        currentIndex={currentIndex}
-        // onPreviousPress={() => {
-        //   console.log("Previous pressed, current index:", currentIndex);
-        //   currentIndex > 0 && setCurrentIndex(currentIndex - 1);
-        // }}
-        // onNextPress={() => {
-        //   console.log("Next pressed, current index:", currentIndex);
-        //   currentIndex < articles.length - 1 &&
-        //     setCurrentIndex(currentIndex + 1);
-        // }}
-        // onRandomPress={handleRandomArticle}
-      />
+    <View className={container()} {...panResponder.panHandlers}>
+      <ArticleReader articles={articles} currentIndex={0} />
     </View>
   );
 }
