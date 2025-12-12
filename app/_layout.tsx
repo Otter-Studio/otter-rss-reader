@@ -88,8 +88,8 @@ function RootLayoutNav() {
     },
     {
       icon: <Icon as={SquareLibrary} size="lg" />,
-      title: "列表",
-      key: "list",
+      title: "订阅源",
+      key: "feeds",
     },
     {
       icon: <Icon as={Settings} size="lg" />,
@@ -101,8 +101,8 @@ function RootLayoutNav() {
   // 根据当前路径获取 activeKey
   const activeKey = pathname.includes("reader")
     ? "reader"
-    : pathname.includes("list")
-    ? "list"
+    : pathname.includes("feeds")
+    ? "feeds"
     : pathname.includes("settings")
     ? "settings"
     : "reader";
