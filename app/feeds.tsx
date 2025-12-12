@@ -217,7 +217,11 @@ export default function FeedsPage() {
     </Link>
   );
 
-  const renderGroupHeader = ({ section }: { section: { id: string; title: string } }) => (
+  const renderGroupHeader = ({
+    section,
+  }: {
+    section: { id: string; title: string };
+  }) => (
     <Pressable
       onPress={() => {
         router.push({
