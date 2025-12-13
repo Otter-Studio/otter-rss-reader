@@ -3,18 +3,18 @@ import { vars } from 'nativewind';
 
 export const config = {
   light: vars({
-    '--color-primary-0': '179 179 179',
-    '--color-primary-50': '153 153 153',
-    '--color-primary-100': '128 128 128',
-    '--color-primary-200': '115 115 115',
-    '--color-primary-300': '102 102 102',
-    '--color-primary-400': '82 82 82',
-    '--color-primary-500': '51 51 51',
-    '--color-primary-600': '41 41 41',
-    '--color-primary-700': '31 31 31',
-    '--color-primary-800': '13 13 13',
-    '--color-primary-900': '10 10 10',
-    '--color-primary-950': '8 8 8',
+    '--color-primary-0': '240 253 244',
+    '--color-primary-50': '236 253 245',
+    '--color-primary-100': '209 250 229',
+    '--color-primary-200': '167 243 208',
+    '--color-primary-300': '110 231 183',
+    '--color-primary-400': '52 211 153',
+    '--color-primary-500': '16 185 129',
+    '--color-primary-600': '5 150 105',
+    '--color-primary-700': '4 120 87',
+    '--color-primary-800': '6 95 70',
+    '--color-primary-900': '6 78 59',
+    '--color-primary-950': '2 44 34',
 
     /* Secondary  */
     '--color-secondary-0': '253 253 253',
@@ -150,23 +150,23 @@ export const config = {
     '--color-background-info': '235 248 254',
 
     /* Focus Ring Indicator  */
-    '--color-indicator-primary': '55 55 55',
+    '--color-indicator-primary': '16 185 129',
     '--color-indicator-info': '83 153 236',
     '--color-indicator-error': '185 28 28',
   }),
   dark: vars({
-    '--color-primary-0': '166 166 166',
-    '--color-primary-50': '175 175 175',
-    '--color-primary-100': '186 186 186',
-    '--color-primary-200': '197 197 197',
-    '--color-primary-300': '212 212 212',
-    '--color-primary-400': '221 221 221',
-    '--color-primary-500': '230 230 230',
-    '--color-primary-600': '240 240 240',
-    '--color-primary-700': '250 250 250',
-    '--color-primary-800': '253 253 253',
-    '--color-primary-900': '254 249 249',
-    '--color-primary-950': '253 252 252',
+    '--color-primary-0': '240 253 244',
+    '--color-primary-50': '236 253 245',
+    '--color-primary-100': '209 250 229',
+    '--color-primary-200': '167 243 208',
+    '--color-primary-300': '110 231 183',
+    '--color-primary-400': '52 211 153',
+    '--color-primary-500': '16 185 129',
+    '--color-primary-600': '5 150 105',
+    '--color-primary-700': '4 120 87',
+    '--color-primary-800': '6 95 70',
+    '--color-primary-900': '6 78 59',
+    '--color-primary-950': '2 44 34',
 
     /* Secondary  */
     '--color-secondary-0': '20 20 20',
@@ -302,7 +302,7 @@ export const config = {
     '--color-background-info': '26 40 46',
 
     /* Focus Ring Indicator  */
-    '--color-indicator-primary': '247 247 247',
+    '--color-indicator-primary': '16 185 129',
     '--color-indicator-info': '161 199 245',
     '--color-indicator-error': '232 70 69',
   }),
