@@ -50,21 +50,28 @@ export const ArticleOperations = {
   async addArticlesInBatch(articles: Partial<IItem>[]): Promise<IItem[]> {
     try {
       const database = await getDatabase();
-      const items = articles.map(article => ({
-        id: article.id || '',
-        title: article.title || 'Untitled',
-        summary: article.summary || '',
-        content: article.content || '',
-        feedId: article.feedId || '',
-        link: article.link || '',
-        published: article.published || Date.now(),
-        isRead: article.isRead || false,
-        isStarred: article.isStarred || false,
-        isArchived: article.isArchived || false,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        ...article,
-      } as IItem));
+      const items = articles.map((article, index) => {
+        const now = new Date();
+        const fallbackId = (article.feedId || 'item') + '-' + Date.now() + '-' + index;
+        return {
+          ...article,
+          id:
+            (article.id && article.id.trim()) ||
+            (article.link && article.link.trim()) ||
+            fallbackId,
+          title: article.title?.trim() || 'Untitled',
+          summary: article.summary || '',
+          content: article.content || '',
+          feedId: article.feedId?.toString().trim() || 'unknown',
+          link: article.link?.trim() || '',
+          published: article.published || Date.now(),
+          isRead: article.isRead ?? false,
+          isStarred: article.isStarred ?? false,
+          isArchived: article.isArchived ?? false,
+          createdAt: article.createdAt || now,
+          updatedAt: article.updatedAt || now,
+        } as IItem;
+      });
 
       const result = await database.items.addBatch(items);
       console.log('[ArticleOperations] Added articles in batch:', result.length);

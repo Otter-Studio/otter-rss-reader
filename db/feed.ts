@@ -47,15 +47,20 @@ export const FeedOperations = {
   async addFeed(feedData: Partial<IFeed>): Promise<IFeed> {
     try {
       const database = await getDatabase();
+      const now = new Date();
       const feed = await database.feeds.add({
-        id: feedData.id || '',
-        title: feedData.title || 'Untitled',
-        description: feedData.description || '',
-        url: feedData.url || '',
-        language: feedData.language || 'en',
-        createdAt: new Date(),
-        updatedAt: new Date(),
         ...feedData,
+        id:
+          (feedData.id && feedData.id.trim()) ||
+          (feedData.url && feedData.url.trim()) ||
+          `feed-${Date.now()}`,
+        title: feedData.title?.trim() || 'Untitled',
+        description: feedData.description || '',
+        url: feedData.url?.trim() || '',
+        language: feedData.language || 'en',
+        isActive: feedData.isActive ?? true,
+        createdAt: feedData.createdAt || now,
+        updatedAt: feedData.updatedAt || now,
       } as IFeed);
       console.log('[FeedOperations] Feed added:', feed);
       return feed;

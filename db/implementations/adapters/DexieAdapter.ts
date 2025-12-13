@@ -9,12 +9,12 @@ export default class DexieAdapter<T extends { id?: string }> implements IDbAdapt
   }
 
   async insert(data: T): Promise<T> {
-    const id = await this.table.add(data);
-    return { ...data, id: id as string };
+    await this.table.put(data);
+    return data;
   }
 
   async insertMany(data: T[]): Promise<T[]> {
-    await this.table.bulkAdd(data);
+    await this.table.bulkPut(data);
     return data;
   }
 

@@ -189,29 +189,35 @@ export class CacheManager {
       try {
         const dbArticles = feedId
           ? await ArticleOperations.getArticlesByFeed(feedId)
-          : await ArticleOperations.getRecentArticles(500);
+          : await ArticleOperations.getRecentArticles(5000);
 
         if (dbArticles.length > 0) {
           // 转换 DB 格式并立即显示
-          this.state.items = dbArticles.map((article: any) => ({
-            id: article.guid || article.id,
-            title: article.title,
-            published: new Date(article.pub_date).getTime(),
-            author: article.author || '',
-            summary: {
-              content: article.description || '',
-            },
-            canonical: article.link ? [{ href: article.link }] : [],
-            alternate: article.link ? [{ href: article.link }] : [],
-            categories: [],
-            origin: {
-              streamId: article.feed_id,
-              htmlUrl: '',
-              title: '',
-            },
-            crawlTimeMsec: new Date(article.created_at).getTime(),
-            timestampUsec: new Date(article.created_at).getTime() * 1000,
-          })) as any;
+          this.state.items = dbArticles.map((article: any) => {
+            const link = article.link || '';
+            const published = article.published ?? Date.now();
+            const created = article.createdAt
+              ? new Date(article.createdAt).getTime()
+              : published;
+
+            return {
+              id: article.id,
+              title: article.title,
+              published,
+              author: article.author || '',
+              summary: { content: article.summary || article.content || '' },
+              canonical: link ? [{ href: link }] : [],
+              alternate: link ? [{ href: link }] : [],
+              categories: [],
+              origin: {
+                streamId: article.feedId,
+                htmlUrl: '',
+                title: '',
+              },
+              crawlTimeMsec: created,
+              timestampUsec: created * 1000,
+            } as any;
+          });
 
           console.log(`[Cache] Loaded ${dbArticles.length} items from DB (feedId: ${feedId || 'all'})`);
           this.notify();
@@ -250,7 +256,8 @@ export class CacheManager {
         items = allItems;
       }
 
-      this.state.items = items;
+      const merged = this._mergeItems(this.state.items, items);
+      this.state.items = merged;
 
       // 同时保存到数据库（异步，不等待）
       this._syncArticlesToDb(items).catch((err: any) =>
@@ -490,20 +497,46 @@ export class CacheManager {
   }
 
   /**
+   * 合并已存在的 items 与新拉取的 items，保持唯一性并按发布时间排序
+   */
+  private _mergeItems(existing: IFeedItem[], incoming: IFeedItem[]): IFeedItem[] {
+    const map = new Map<string, IFeedItem>();
+    existing.forEach((item) => map.set(item.id, item));
+    incoming.forEach((item) => map.set(item.id, item));
+
+    const getTime = (item: IFeedItem) =>
+      typeof item.published === 'number' ? item.published : Number(item.published || 0);
+
+    return Array.from(map.values()).sort((a, b) => getTime(b) - getTime(a));
+  }
+
+  /**
    * 将 Article 同步到数据库（异步）
    */
   private async _syncArticlesToDb(items: IFeedItem[]): Promise<void> {
     try {
-      // 批量添加文章到数据库
-      const articlesToAdd = items.map(item => ({
-        title: item.title,
-        link: item.canonical[0]?.href || item.alternate[0]?.href || item.id,
-        feed_id: item.origin.streamId,
-        description: item.summary?.content || '',
-        author: item.author || '',
-        pub_date: new Date(item.published).toISOString(),
-        guid: item.id,
-      }));
+      const now = Date.now();
+      const articlesToAdd = items.map(item => {
+        const link = item.canonical?.[0]?.href || item.alternate?.[0]?.href || item.id;
+        const published = item.published ? new Date(item.published).getTime() : now;
+
+        return {
+          id: item.id,
+          title: item.title || 'Untitled',
+          summary: item.summary?.content || '',
+          content: item.content || item.summary?.content || '',
+          author: item.author || '',
+          link,
+          feedId: item.origin?.streamId || 'unknown',
+          published,
+          crawlTime: item.crawlTimeMsec ?? now,
+          isRead: false,
+          isStarred: false,
+          isArchived: false,
+          createdAt: new Date(published),
+          updatedAt: new Date(published),
+        } as any;
+      });
 
       await ArticleOperations.addArticlesInBatch(articlesToAdd as any);
       console.log(`[Cache] Synced ${items.length} articles to DB`);
