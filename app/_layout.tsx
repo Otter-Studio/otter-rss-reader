@@ -125,7 +125,7 @@ function RootLayoutNav() {
               <Box
                 className={`flex-1 bg-background-0 dark:bg-background-800 flex flex-col`}
               >
-                <Box className="flex-1 pb-24">
+                <Box className="flex-1">
                   <Slot />
                 </Box>
                 <AppNavigation

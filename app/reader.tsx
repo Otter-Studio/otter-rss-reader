@@ -30,7 +30,7 @@ export default function ReaderPage() {
   if (!itemId) {
     return (
       <Box className={container()}>
-        <VStack className="flex-1 items-center justify-center">
+        <VStack className="flex-1 items-center justify-center flex">
           <Text className="text-error-600 dark:text-error-300 text-lg font-bold">
             文章 ID 未提供
           </Text>

@@ -15,17 +15,12 @@ const container = tva({
 
 /** 头部 */
 const header = tva({
-  base: "px-4 py-6 border-b border-outline-200 dark:border-outline-700 bg-background-100 dark:bg-background-900",
-});
-
-/** 标题 */
-const title = tva({
-  base: "text-3xl font-bold text-typography-900 dark:text-typography-0",
+  base: "px-4 py-1 bg-background-50",
 });
 
 /** 副标题 */
 const subtitle = tva({
-  base: "text-sm text-typography-500 dark:text-typography-400",
+  base: "text-sm text-typography-500",
 });
 
 /** 错误容器 */
@@ -204,9 +199,6 @@ export default function ItemsPage() {
     <Box className={container({})}>
       {/* 头部 */}
       <Box className={header({})}>
-        <Box className="mb-2">
-          <Text className={title({})}>📄 文章</Text>
-        </Box>
         <Text className={subtitle({})}>
           {feedTitle
             ? `${feedTitle} · ${total} 篇`

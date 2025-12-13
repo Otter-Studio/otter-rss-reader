@@ -14,21 +14,31 @@ const container = tva({
 });
 
 const header = tva({
-  base: "px-4 py-4 border-b border-outline-200 dark:border-outline-700 bg-background-100 dark:bg-background-900",
+  base: "px-4 py-1 bg-background-50 flex justify-between flex-row",
 });
 
-const headerTitle = tva({
-  base: "text-xl font-bold text-typography-900 dark:text-typography-0 line-clamp-2",
+const headerText = tva({
+  base: "text-sm text-typography-500",
 });
 
-const headerSubtitle = tva({
+const info = tva({
+  base: "px-4 py-4 border-b border-outline-50 bg-background-50 border-r-4",
+});
+
+const infoTitle = tva({
+  base: "text-xl font-bold text-typography-900 line-clamp-2",
+});
+
+const infoSubtitle = tva({
   base: "text-sm text-typography-500 dark:text-typography-400 mt-2",
 });
+
 const contentContainer = tva({
   base: "flex-1 bg-background-0 dark:bg-background-800",
 });
+
 const content = tva({
-  base: "flex-1 px-4 py-4",
+  base: "flex-1 px-4 pt-4 pb-24",
 });
 
 const contentText = tva({
@@ -143,24 +153,8 @@ export const ArticleReader = ({
     <Box className={container({})}>
       {/* 头部 */}
       <Box className={header({})}>
-        <HStack className="justify-between items-start">
-          <VStack className="flex-1">
-            <Text className={headerTitle({})}>{currentArticle.title}</Text>
-            <HStack className="mt-3 justify-between items-center">
-              <Text className={headerSubtitle({})}>
-                {currentArticle.origin?.title || "未知来源"}
-              </Text>
-              <Text className="text-xs text-typography-500 dark:text-typography-400">
-                {publishedTime}
-              </Text>
-            </HStack>
-            {currentArticle.author && (
-              <Text className="text-xs text-typography-500 dark:text-typography-400 mt-2">
-                {currentArticle.author}
-              </Text>
-            )}
-          </VStack>
-        </HStack>
+        <Text className={headerText({})}>{currentArticle.title}</Text>
+        <Text className={headerText({})}>{publishedTime}</Text>
       </Box>
 
       {/* 内容 */}
@@ -171,6 +165,27 @@ export const ArticleReader = ({
           nestedScrollEnabled={true}
           scrollEnabled={true}
         >
+          {/* 基本信息 */}
+          <Box className={info({})}>
+            <HStack className="justify-between items-start">
+              <VStack className="flex-1">
+                <Text className={infoTitle({})}>{currentArticle.title}</Text>
+                <HStack className="mt-3 justify-between items-center">
+                  <Text className={infoSubtitle({})}>
+                    {currentArticle.origin?.title || "未知来源"}
+                  </Text>
+                  <Text className="text-xs text-typography-500 dark:text-typography-400">
+                    {publishedTime}
+                  </Text>
+                </HStack>
+                {currentArticle.author && (
+                  <Text className="text-xs text-typography-500 dark:text-typography-400 mt-2">
+                    {currentArticle.author}
+                  </Text>
+                )}
+              </VStack>
+            </HStack>
+          </Box>
           {ReaderMap[type](contentHTML)}
         </ScrollView>
       </Box>
