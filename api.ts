@@ -2,6 +2,41 @@ import Reader, { IConfig } from 'libseymour'
 import { SettingsOperations } from '@/db/settings'
 
 /**
+ * 网络请求重试工具函数
+ */
+async function fetchWithRetry(
+  url: string,
+  options: RequestInit = {},
+  maxRetries: number = 3,
+  baseDelay: number = 500
+): Promise<Response> {
+  let lastError: any;
+
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const response = await fetch(url, options);
+      return response;
+    } catch (error: any) {
+      lastError = error;
+      const errorMessage = (error as any).message || String(error);
+
+      // 网络请求失败是可重试的
+      if (attempt < maxRetries - 1) {
+        // 使用指数退避延迟
+        const delay = baseDelay * Math.pow(2, attempt);
+        console.warn(
+          `[API] Network request failed (attempt ${attempt + 1}/${maxRetries}), retrying in ${delay}ms...`,
+          errorMessage
+        );
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+
+  throw lastError;
+}
+
+/**
  * 为 libseymour 的 getAuthToken 创建兼容性包装
  * 解决移动端与 PC 端的差异
  */
@@ -14,8 +49,8 @@ async function getAuthTokenCompat(
 
   console.log('[API] Requesting auth token from:', authUrl)
 
-  // 使用标准 fetch 而不是依赖 libseymour 的实现
-  const response = await fetch(authUrl, {
+  // 使用有重试机制的 fetch
+  const response = await fetchWithRetry(authUrl, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
@@ -24,7 +59,7 @@ async function getAuthTokenCompat(
       Email: username,
       Passwd: password,
     }).toString(),
-  })
+  }, 3, 500)
 
   const responseText = await response.text()
 
@@ -132,14 +167,30 @@ class APIClient {
         reader.setAuthToken(token)
         console.log('[API] Authentication successful')
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error)
         console.error('[API] Authentication failed:', error)
-        throw new Error(`Authentication failed: ${error instanceof Error ? error.message : String(error)}`)
+
+        // 提供更详细的错误信息
+        if (errorMessage.includes('Network request failed')) {
+          throw new Error(`Network error: Cannot connect to ${baseUrl}. Please check the URL and network connection.`)
+        } else if (errorMessage.includes('HTTP')) {
+          throw new Error(`Authentication failed: ${errorMessage}`)
+        } else {
+          throw new Error(`Authentication failed: ${errorMessage}`)
+        }
       }
 
       return reader
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error)
-      console.error('[API] Initialization failed:', errorMsg)
+      // 缺少配置是警告，真实的连接错误才是错误
+      if (errorMsg.includes('not configured') || errorMsg.includes('baseUrl')) {
+        console.warn('[API] Initialization failed:', errorMsg)
+      } else if (errorMsg.includes('Network error')) {
+        console.warn('[API] Initialization failed (network issue):', errorMsg)
+      } else {
+        console.error('[API] Initialization failed:', errorMsg)
+      }
       throw error
     }
   }

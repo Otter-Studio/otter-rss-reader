@@ -23,7 +23,7 @@ export const useCachedFeeds = (): UseCachedFeedsReturn => {
     // 只在缓存完全为空时手动触发刷新
     // CacheManager 初始化时已经触发过一次
     if (context.state.feeds.length === 0 && !context.loading.feeds) {
-      context.refreshFeeds().catch((err) => console.error('Failed to initialize feeds:', err));
+      context.refreshFeeds().catch((err) => console.warn('Failed to initialize feeds:', err));
     }
   }, []);
 
@@ -32,7 +32,7 @@ export const useCachedFeeds = (): UseCachedFeedsReturn => {
     try {
       await context.refreshFeeds();
     } catch (err) {
-      console.error('Failed to refresh feeds:', err);
+      console.warn('Failed to refresh feeds:', err);
     } finally {
       setLocalLoading(false);
     }

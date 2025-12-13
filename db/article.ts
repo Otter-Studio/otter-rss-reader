@@ -1,363 +1,269 @@
-import { dbManager } from './database';
-import { nanoid } from 'nanoid/non-secure';
+/**
+ * Article Operations - 便利层
+ * 
+ * 提供一个简化的 API 来访问 Article（Item）相关的数据库操作
+ */
+
+import { getDatabase } from './container';
+import { IItem } from './models';
 
 /**
- * RSS Article 数据模型
+ * Article 操作对象
+ * 
+ * 提供访问 Article 数据的便利方法
  */
-export interface RSSArticle {
-  id: string;
-  title: string;
-  description?: string;
-  content?: string;
-  author?: string;
-  link: string;
-  image?: string;
-  pub_date?: string;
-  created_at: string;
-  is_read: boolean;
-  is_starred: boolean;
-  feed_id: string;
-  category?: string;
-  guid?: string;
-}
-
-/**
- * RSS Article 操作类
- */
-export class ArticleOperations {
+export const ArticleOperations = {
   /**
-   * 添加新的文章
+   * 根据 Feed ID 获取文章
    */
-  static async addArticle(articleData: Omit<Partial<RSSArticle>, 'id' | 'created_at'> & {
-    title: string;
-    link: string;
-    feed_id: string;
-  }): Promise<RSSArticle> {
-    const id = nanoid();
-    const createdAt = new Date().toISOString();
-
-    await dbManager.execute(
-      `INSERT INTO rss_articles (id, title, description, content, author, link, image, pub_date, feed_id, category, guid, is_read, is_starred, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        id,
-        articleData.title,
-        articleData.description || null,
-        articleData.content || null,
-        articleData.author || null,
-        articleData.link,
-        articleData.image || null,
-        articleData.pub_date || null,
-        articleData.feed_id,
-        articleData.category || null,
-        articleData.guid || null,
-        0,
-        0,
-        createdAt,
-      ]
-    );
-
-    return {
-      id,
-      created_at: createdAt,
-      is_read: false,
-      is_starred: false,
-      title: articleData.title,
-      link: articleData.link,
-      feed_id: articleData.feed_id,
-      description: articleData.description,
-      content: articleData.content,
-      author: articleData.author,
-      image: articleData.image,
-      pub_date: articleData.pub_date,
-      category: articleData.category,
-      guid: articleData.guid,
-    };
-  }
-
-  /**
-   * 获取 Feed 的所有文章
-   */
-  static async getArticlesByFeed(feedId: string, limit?: number, offset: number = 0): Promise<RSSArticle[]> {
-    let sql = `SELECT * FROM rss_articles WHERE feed_id = ? ORDER BY pub_date DESC`;
-    const params: any[] = [feedId];
-
-    if (limit) {
-      sql += ` LIMIT ? OFFSET ?`;
-      params.push(limit, offset);
+  async getArticlesByFeed(feedId: string): Promise<IItem[]> {
+    try {
+      const database = await getDatabase();
+      const articles = await database.items.getByFeedId(feedId);
+      return articles;
+    } catch (error) {
+      console.error('[ArticleOperations] Failed to get articles by feed:', error);
+      return [];
     }
-
-    return await dbManager.query<RSSArticle>(sql, params);
-  }
-
-  /**
-   * 获取所有未读文章
-   */
-  static async getUnreadArticles(limit?: number, offset: number = 0): Promise<RSSArticle[]> {
-    let sql = `SELECT * FROM rss_articles WHERE is_read = 0 ORDER BY pub_date DESC`;
-    const params: any[] = [];
-
-    if (limit) {
-      sql += ` LIMIT ? OFFSET ?`;
-      params.push(limit, offset);
-    }
-
-    return await dbManager.query<RSSArticle>(sql, params);
-  }
-
-  /**
-   * 获取已星标文章
-   */
-  static async getStarredArticles(limit?: number, offset: number = 0): Promise<RSSArticle[]> {
-    let sql = `SELECT * FROM rss_articles WHERE is_starred = 1 ORDER BY pub_date DESC`;
-    const params: any[] = [];
-
-    if (limit) {
-      sql += ` LIMIT ? OFFSET ?`;
-      params.push(limit, offset);
-    }
-
-    return await dbManager.query<RSSArticle>(sql, params);
-  }
-
-  /**
-   * 按 ID 获取文章
-   */
-  static async getArticleById(id: string): Promise<RSSArticle | null> {
-    return await dbManager.queryOne<RSSArticle>(
-      `SELECT * FROM rss_articles WHERE id = ?`,
-      [id]
-    );
-  }
-
-  /**
-   * 按 GUID 获取文章
-   */
-  static async getArticleByGuid(guid: string): Promise<RSSArticle | null> {
-    return await dbManager.queryOne<RSSArticle>(
-      `SELECT * FROM rss_articles WHERE guid = ?`,
-      [guid]
-    );
-  }
-
-  /**
-   * 标记文章为已读
-   */
-  static async markAsRead(id: string): Promise<RSSArticle | null> {
-    await dbManager.execute(
-      `UPDATE rss_articles SET is_read = 1 WHERE id = ?`,
-      [id]
-    );
-    return await this.getArticleById(id);
-  }
-
-  /**
-   * 标记文章为未读
-   */
-  static async markAsUnread(id: string): Promise<RSSArticle | null> {
-    await dbManager.execute(
-      `UPDATE rss_articles SET is_read = 0 WHERE id = ?`,
-      [id]
-    );
-    return await this.getArticleById(id);
-  }
-
-  /**
-   * 切换文章星标状态
-   */
-  static async toggleStar(id: string): Promise<RSSArticle | null> {
-    const article = await this.getArticleById(id);
-    if (!article) {
-      return null;
-    }
-
-    await dbManager.execute(
-      `UPDATE rss_articles SET is_starred = ? WHERE id = ?`,
-      [article.is_starred ? 0 : 1, id]
-    );
-
-    return await this.getArticleById(id);
-  }
-
-  /**
-   * 设置文章星标状态
-   */
-  static async setStar(id: string, isStarred: boolean): Promise<RSSArticle | null> {
-    await dbManager.execute(
-      `UPDATE rss_articles SET is_starred = ? WHERE id = ?`,
-      [isStarred ? 1 : 0, id]
-    );
-    return await this.getArticleById(id);
-  }
-
-  /**
-   * 标记 Feed 的所有文章为已读
-   */
-  static async markFeedArticlesAsRead(feedId: string): Promise<void> {
-    await dbManager.execute(
-      `UPDATE rss_articles SET is_read = 1 WHERE feed_id = ? AND is_read = 0`,
-      [feedId]
-    );
-  }
-
-  /**
-   * 标记所有文章为已读
-   */
-  static async markAllAsRead(): Promise<void> {
-    await dbManager.execute(
-      `UPDATE rss_articles SET is_read = 1 WHERE is_read = 0`
-    );
-  }
-
-  /**
-   * 删除文章
-   */
-  static async deleteArticle(id: string): Promise<boolean> {
-    const result = await dbManager.execute(
-      `DELETE FROM rss_articles WHERE id = ?`,
-      [id]
-    );
-    return result.changes > 0;
-  }
-
-  /**
-   * 删除 Feed 的所有文章
-   */
-  static async deleteArticlesByFeed(feedId: string): Promise<number> {
-    const result = await dbManager.execute(
-      `DELETE FROM rss_articles WHERE feed_id = ?`,
-      [feedId]
-    );
-    return result.changes;
-  }
-
-  /**
-   * 删除旧文章（根据日期）
-   */
-  static async deleteOldArticles(daysOld: number = 30): Promise<number> {
-    const cutoffDate = new Date(Date.now() - daysOld * 24 * 60 * 60 * 1000).toISOString();
-    const result = await dbManager.execute(
-      `DELETE FROM rss_articles WHERE pub_date < ? AND is_starred = 0`,
-      [cutoffDate]
-    );
-    return result.changes;
-  }
-
-  /**
-   * 获取文章数量统计
-   */
-  static async getArticleStats(): Promise<{
-    total: number;
-    unread: number;
-    starred: number;
-  }> {
-    const total = await dbManager.queryOne<{ count: number }>(
-      `SELECT COUNT(*) as count FROM rss_articles`
-    );
-    const unread = await dbManager.queryOne<{ count: number }>(
-      `SELECT COUNT(*) as count FROM rss_articles WHERE is_read = 0`
-    );
-    const starred = await dbManager.queryOne<{ count: number }>(
-      `SELECT COUNT(*) as count FROM rss_articles WHERE is_starred = 1`
-    );
-
-    return {
-      total: total?.count || 0,
-      unread: unread?.count || 0,
-      starred: starred?.count || 0,
-    };
-  }
-
-  /**
-   * 搜索文章
-   */
-  static async searchArticles(keyword: string, limit?: number, offset: number = 0): Promise<RSSArticle[]> {
-    const searchTerm = `%${keyword}%`;
-    let sql = `SELECT * FROM rss_articles 
-              WHERE title LIKE ? OR description LIKE ? OR content LIKE ?
-              ORDER BY pub_date DESC`;
-    const params: any[] = [searchTerm, searchTerm, searchTerm];
-
-    if (limit) {
-      sql += ` LIMIT ? OFFSET ?`;
-      params.push(limit, offset);
-    }
-
-    return await dbManager.query<RSSArticle>(sql, params);
-  }
-
-  /**
-   * 获取未读文章数量
-   */
-  static async getUnreadCount(): Promise<number> {
-    const result = await dbManager.queryOne<{ count: number }>(
-      `SELECT COUNT(*) as count FROM rss_articles WHERE is_read = 0`
-    );
-    return result?.count || 0;
-  }
-
-  /**
-   * 获取 Feed 的未读文章数量
-   */
-  static async getFeedUnreadCount(feedId: string): Promise<number> {
-    const result = await dbManager.queryOne<{ count: number }>(
-      `SELECT COUNT(*) as count FROM rss_articles WHERE feed_id = ? AND is_read = 0`,
-      [feedId]
-    );
-    return result?.count || 0;
-  }
-
-  /**
-   * 批量添加文章
-   */
-  static async addArticlesInBatch(articlesData: Array<Omit<Partial<RSSArticle>, 'id' | 'created_at'> & {
-    title: string;
-    link: string;
-    feed_id: string;
-  }>): Promise<void> {
-    const createdAt = new Date().toISOString();
-
-    const statements = articlesData.map(articleData => ({
-      sql: `INSERT OR IGNORE INTO rss_articles (id, title, description, content, author, link, image, pub_date, feed_id, category, guid, is_read, is_starred, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      params: [
-        nanoid(),
-        articleData.title,
-        articleData.description || null,
-        articleData.content || null,
-        articleData.author || null,
-        articleData.link,
-        articleData.image || null,
-        articleData.pub_date || null,
-        articleData.feed_id,
-        articleData.category || null,
-        articleData.guid || null,
-        0,
-        0,
-        createdAt,
-      ],
-    }));
-
-    await dbManager.batch(statements);
-  }
+  },
 
   /**
    * 获取最近的文章
    */
-  static async getRecentArticles(limit: number = 50): Promise<RSSArticle[]> {
-    return await dbManager.query<RSSArticle>(
-      `SELECT * FROM rss_articles ORDER BY pub_date DESC LIMIT ?`,
-      [limit]
-    );
-  }
+  async getRecentArticles(limit: number = 100): Promise<IItem[]> {
+    try {
+      const database = await getDatabase();
+      const articles = await database.items.getAll();
+      // 按发布日期排序，获取最新的文章
+      return articles
+        .sort((a, b) => (b.published || 0) - (a.published || 0))
+        .slice(0, limit);
+    } catch (error) {
+      console.error('[ArticleOperations] Failed to get recent articles:', error);
+      return [];
+    }
+  },
 
   /**
-   * 获取特定时间范围内的文章
+   * 批量添加文章
    */
-  static async getArticlesInDateRange(startDate: string, endDate: string): Promise<RSSArticle[]> {
-    return await dbManager.query<RSSArticle>(
-      `SELECT * FROM rss_articles WHERE pub_date >= ? AND pub_date <= ? ORDER BY pub_date DESC`,
-      [startDate, endDate]
-    );
-  }
-}
+  async addArticlesInBatch(articles: Partial<IItem>[]): Promise<IItem[]> {
+    try {
+      const database = await getDatabase();
+      const items = articles.map(article => ({
+        id: article.id || '',
+        title: article.title || 'Untitled',
+        summary: article.summary || '',
+        content: article.content || '',
+        feedId: article.feedId || '',
+        link: article.link || '',
+        published: article.published || Date.now(),
+        isRead: article.isRead || false,
+        isStarred: article.isStarred || false,
+        isArchived: article.isArchived || false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        ...article,
+      } as IItem));
+
+      const result = await database.items.addBatch(items);
+      console.log('[ArticleOperations] Added articles in batch:', result.length);
+      return result;
+    } catch (error) {
+      console.error('[ArticleOperations] Failed to add articles in batch:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * 根据 ID 获取文章
+   */
+  async getArticleById(articleId: string): Promise<IItem | null> {
+    try {
+      const database = await getDatabase();
+      const article = await database.items.getById(articleId);
+      return article;
+    } catch (error) {
+      console.error('[ArticleOperations] Failed to get article by id:', error);
+      return null;
+    }
+  },
+
+  /**
+   * 标记文章为已读
+   */
+  async markAsRead(articleId: string): Promise<IItem> {
+    try {
+      const database = await getDatabase();
+      const article = await database.items.markAsRead(articleId);
+      console.log('[ArticleOperations] Article marked as read:', articleId);
+      return article;
+    } catch (error) {
+      console.error('[ArticleOperations] Failed to mark article as read:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * 标记文章为未读
+   */
+  async markAsUnread(articleId: string): Promise<IItem> {
+    try {
+      const database = await getDatabase();
+      const article = await database.items.markAsUnread(articleId);
+      console.log('[ArticleOperations] Article marked as unread:', articleId);
+      return article;
+    } catch (error) {
+      console.error('[ArticleOperations] Failed to mark article as unread:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * 标记文章为星标
+   */
+  async markAsStarred(articleId: string): Promise<IItem> {
+    try {
+      const database = await getDatabase();
+      const article = await database.items.markAsStarred(articleId);
+      console.log('[ArticleOperations] Article marked as starred:', articleId);
+      return article;
+    } catch (error) {
+      console.error('[ArticleOperations] Failed to mark article as starred:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * 取消星标
+   */
+  async unmarkAsStarred(articleId: string): Promise<IItem> {
+    try {
+      const database = await getDatabase();
+      const article = await database.items.unmarkAsStarred(articleId);
+      console.log('[ArticleOperations] Article unmarked as starred:', articleId);
+      return article;
+    } catch (error) {
+      console.error('[ArticleOperations] Failed to unmark article as starred:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * 搜索文章
+   */
+  async searchArticles(keyword: string): Promise<IItem[]> {
+    try {
+      const database = await getDatabase();
+      const articles = await database.items.search(keyword);
+      return articles;
+    } catch (error) {
+      console.error('[ArticleOperations] Failed to search articles:', error);
+      return [];
+    }
+  },
+
+  /**
+   * 获取所有未读文章
+   */
+  async getUnreadArticles(): Promise<IItem[]> {
+    try {
+      const database = await getDatabase();
+      const articles = await database.items.getUnread();
+      return articles;
+    } catch (error) {
+      console.error('[ArticleOperations] Failed to get unread articles:', error);
+      return [];
+    }
+  },
+
+  /**
+   * 获取已星标文章
+   */
+  async getStarredArticles(): Promise<IItem[]> {
+    try {
+      const database = await getDatabase();
+      const articles = await database.items.getStarred();
+      return articles;
+    } catch (error) {
+      console.error('[ArticleOperations] Failed to get starred articles:', error);
+      return [];
+    }
+  },
+
+  /**
+   * 更新文章
+   */
+  async updateArticle(articleId: string, data: Partial<IItem>): Promise<IItem> {
+    try {
+      const database = await getDatabase();
+      const updated = await database.items.update(articleId, {
+        ...data,
+        updatedAt: new Date(),
+      });
+      console.log('[ArticleOperations] Article updated:', articleId);
+      return updated;
+    } catch (error) {
+      console.error('[ArticleOperations] Failed to update article:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * 删除文章
+   */
+  async deleteArticle(articleId: string): Promise<void> {
+    try {
+      const database = await getDatabase();
+      await database.items.delete(articleId);
+      console.log('[ArticleOperations] Article deleted:', articleId);
+    } catch (error) {
+      console.error('[ArticleOperations] Failed to delete article:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * 批量标记为已读
+   */
+  async markAsReadBatch(articleIds: string[]): Promise<IItem[]> {
+    try {
+      const database = await getDatabase();
+      const articles = await database.items.markAsReadBatch(articleIds);
+      console.log('[ArticleOperations] Marked articles as read:', articleIds.length);
+      return articles;
+    } catch (error) {
+      console.error('[ArticleOperations] Failed to mark articles as read in batch:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * 批量标记为未读
+   */
+  async markAsUnreadBatch(articleIds: string[]): Promise<IItem[]> {
+    try {
+      const database = await getDatabase();
+      const articles = await database.items.markAsUnreadBatch(articleIds);
+      console.log('[ArticleOperations] Marked articles as unread:', articleIds.length);
+      return articles;
+    } catch (error) {
+      console.error('[ArticleOperations] Failed to mark articles as unread in batch:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * 获取未读文章数量
+   */
+  async getUnreadCount(): Promise<number> {
+    try {
+      const database = await getDatabase();
+      const count = await database.items.countUnread();
+      return count;
+    } catch (error) {
+      console.error('[ArticleOperations] Failed to get unread count:', error);
+      return 0;
+    }
+  },
+};

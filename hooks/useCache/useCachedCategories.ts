@@ -23,7 +23,7 @@ export const useCachedCategories = (): UseCachedCategoriesReturn => {
     // 只在缓存完全为空时手动触发刷新
     // CacheManager 初始化时已经触发过一次
     if (context.state.categories.length === 0 && !context.loading.categories) {
-      context.refreshCategories().catch((err) => console.error('Failed to initialize categories:', err));
+      context.refreshCategories().catch((err) => console.warn('Failed to initialize categories:', err));
     }
   }, []);
 
@@ -32,7 +32,7 @@ export const useCachedCategories = (): UseCachedCategoriesReturn => {
     try {
       await context.refreshCategories();
     } catch (err) {
-      console.error('Failed to refresh categories:', err);
+      console.warn('Failed to refresh categories:', err);
     } finally {
       setLocalLoading(false);
     }

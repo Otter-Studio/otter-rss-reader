@@ -1,3 +1,5 @@
+import "reflect-metadata";
+
 import { GluestackUIProvider } from "@/components/ui/gluestack-ui-provider";
 import "@/global.css";
 import FontAwesome from "@expo/vector-icons/FontAwesome";

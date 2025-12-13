@@ -25,7 +25,7 @@ export const useCachedItems = (options?: UseCachedItemsOptions): UseCachedItemsR
     // 只在缓存完全为空时手动触发刷新
     // CacheManager 初始化时已经触发过一次
     if (context.state.items.length === 0 && !context.loading.items) {
-      context.refreshItems(options?.feedId).catch((err) => console.error('Failed to initialize items:', err));
+      context.refreshItems(options?.feedId).catch((err) => console.warn('Failed to initialize items:', err));
     }
   }, []);
 
@@ -34,7 +34,7 @@ export const useCachedItems = (options?: UseCachedItemsOptions): UseCachedItemsR
     try {
       await context.refreshItems(options?.feedId);
     } catch (err) {
-      console.error('Failed to refresh items:', err);
+      console.warn('Failed to refresh items:', err);
     } finally {
       setLocalLoading(false);
     }

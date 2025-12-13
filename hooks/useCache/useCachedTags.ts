@@ -23,7 +23,7 @@ export const useCachedTags = (): UseCachedTagsReturn => {
     // 只在缓存完全为空时手动触发刷新
     // CacheManager 初始化时已经触发过一次
     if (context.state.tags.length === 0 && !context.loading.tags) {
-      context.refreshTags().catch((err) => console.error('Failed to initialize tags:', err));
+      context.refreshTags().catch((err) => console.warn('Failed to initialize tags:', err));
     }
   }, []);
 
@@ -32,7 +32,7 @@ export const useCachedTags = (): UseCachedTagsReturn => {
     try {
       await context.refreshTags();
     } catch (err) {
-      console.error('Failed to refresh tags:', err);
+      console.warn('Failed to refresh tags:', err);
     } finally {
       setLocalLoading(false);
     }

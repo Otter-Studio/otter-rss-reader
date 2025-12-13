@@ -11,8 +11,7 @@ import { useState, useEffect, useRef } from 'react';
 import type { IFeedItem, IFeed, ITag, IUnreadCount } from 'libseymour';
 import { getReader } from '@/api';
 import type { CacheContextType, CacheState, CacheLoadingState, CacheErrorState, Category } from './types';
-import { FeedOperations } from '@/db/feed';
-import { ArticleOperations } from '@/db/article';
+import { FeedOperations, ArticleOperations } from '@/db';
 
 /**
  * 缓存管理器类
@@ -23,7 +22,7 @@ export class CacheManager {
   private loading: CacheLoadingState;
   private error: CacheErrorState;
   private refreshInterval: number = 5 * 60 * 1000; // 默认 5 分钟
-  private refreshTimer: NodeJS.Timeout | null = null;
+  private refreshTimer: ReturnType<typeof setInterval> | null = null;
   private listeners: Set<() => void> = new Set();
 
   constructor() {
@@ -170,7 +169,7 @@ export class CacheManager {
       console.log(`[Cache] Updated ${feeds.length} feeds from API`);
     } catch (err) {
       this.error.feeds = err instanceof Error ? err : new Error('Unknown error');
-      console.error('[Cache] Failed to refresh feeds from API:', err);
+      console.warn('[Cache] Failed to refresh feeds from API:', err);
     } finally {
       this.loading.feeds = false;
       this.updateOverallLoading();
@@ -244,7 +243,7 @@ export class CacheManager {
             const feedItems = await reader.getItems(feed.id);
             allItems.push(...feedItems);
           } catch (err) {
-            console.error(`[Cache] Failed to fetch items for feed ${feed.id}:`, err);
+            console.warn(`[Cache] Failed to fetch items for feed ${feed.id}:`, err);
           }
         }
 
@@ -262,7 +261,7 @@ export class CacheManager {
       console.log(`[Cache] Updated ${items.length} items from API (feedId: ${feedId || 'all'})`);
     } catch (err) {
       this.error.items = err instanceof Error ? err : new Error('Unknown error');
-      console.error('[Cache] Failed to refresh items from API:', err);
+      console.warn('[Cache] Failed to refresh items from API:', err);
     } finally {
       this.loading.items = false;
       this.updateOverallLoading();
@@ -443,7 +442,12 @@ export class CacheManager {
       this.startAutoRefresh();
       console.log('[Cache] Initialization complete, auto-refresh started');
     } catch (err) {
-      console.error('[Cache] Initialization failed:', err);
+      // 初始化失败可能是因为 API 未配置，这是警告而不是错误
+      if (err instanceof Error && err.message.includes('not configured')) {
+        console.warn('[Cache] Initialization failed (API not configured):', err);
+      } else {
+        console.error('[Cache] Initialization failed:', err);
+      }
     }
   }
 
@@ -466,18 +470,16 @@ export class CacheManager {
           // 更新现有的 Feed
           await FeedOperations.updateFeed(feed.id, {
             title: feed.title,
-            link: feed.htmlUrl,
-            image: feed.iconUrl,
-            category: feed.categories[0]?.label,
+            htmlUrl: feed.htmlUrl,
+            iconUrl: feed.iconUrl,
           });
         } else {
           // 新增 Feed
           await FeedOperations.addFeed({
             title: feed.title,
             url: feed.url || feed.id,
-            link: feed.htmlUrl,
-            image: feed.iconUrl,
-            category: feed.categories[0]?.label,
+            htmlUrl: feed.htmlUrl,
+            iconUrl: feed.iconUrl,
           });
         }
       }
