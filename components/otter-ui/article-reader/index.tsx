@@ -8,6 +8,7 @@ import RenderHTML from "react-native-render-html";
 import { useWindowDimensions, ScrollView } from "react-native";
 import { useFocusEffect } from "expo-router";
 import { SettingsOperations } from "@/db/settings";
+import WebView from "react-native-webview";
 
 const container = tva({
   base: "flex-1 bg-background-0 dark:bg-background-800 flex flex-col",
@@ -22,7 +23,7 @@ const headerText = tva({
 });
 
 const info = tva({
-  base: "px-4 py-4 border-b border-outline-50 bg-background-50 border-r-4",
+  base: "px-4 py-4 border-b border-outline-50 bg-background-50 rounded-md mb-2",
 });
 
 const infoTitle = tva({
@@ -38,11 +39,15 @@ const contentContainer = tva({
 });
 
 const content = tva({
-  base: "flex-1 px-4 pt-4 pb-24",
+  base: "flex-1 px-4 py-4",
 });
 
 const contentText = tva({
   base: "text-base text-typography-800 dark:text-typography-100 leading-relaxed whitespace-pre-wrap",
+});
+
+const footer = tva({
+  base: "w-full h-24",
 });
 
 export interface ArticleItem {
@@ -55,6 +60,8 @@ export interface ArticleItem {
   published?: number;
   origin?: {
     title: string;
+    htmlUrl?: string;
+    streamId: string;
   };
 }
 
@@ -72,6 +79,12 @@ export const ArticleReader = ({
 }: ArticleReaderProps) => {
   const [isImmersiveMode, setIsImmersiveMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDoubleTap, setIsDoubleTap] = useState(false);
+
+  const handleDoubleTap = useCallback(() => {
+    setIsDoubleTap(true);
+    setTimeout(() => setIsDoubleTap(false), 300);
+  }, []);
 
   // 加载沉浸式阅读设置
   const loadReadingMode = useCallback(async () => {
@@ -150,7 +163,7 @@ export const ArticleReader = ({
     : "未知日期";
 
   return (
-    <Box className={container({})}>
+    <Box className={container({})} onTouchStart={handleDoubleTap}>
       {/* 头部 */}
       <Box className={header({})}>
         <Text className={headerText({})}>{currentArticle.title}</Text>
@@ -180,13 +193,18 @@ export const ArticleReader = ({
                 </HStack>
                 {currentArticle.author && (
                   <Text className="text-xs text-typography-500 dark:text-typography-400 mt-2">
-                    {currentArticle.author}
+                    @{currentArticle.author}
                   </Text>
                 )}
               </VStack>
             </HStack>
           </Box>
-          {ReaderMap[type](contentHTML)}
+          {isDoubleTap && currentArticle.origin?.htmlUrl ? (
+            <WebView source={{ uri: currentArticle.origin?.htmlUrl }} />
+          ) : (
+            ReaderMap[type](contentHTML)
+          )}
+          <Box className={footer({})} />
         </ScrollView>
       </Box>
     </Box>
