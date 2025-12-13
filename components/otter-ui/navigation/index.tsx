@@ -74,7 +74,7 @@ const navigationStyle = tva({
 });
 
 const containerStyle = tva({
-  base: "flex justify-around items-center bg-background-100 border-background-200",
+  base: "flex justify-around items-center bg-background-50 border-background-100",
   variants: {
     position: {
       top: "flex-row h-16 max-w-96 min-w-48",

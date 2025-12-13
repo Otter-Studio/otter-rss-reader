@@ -225,14 +225,14 @@ export default function SettingsPage() {
 
   if (isLoading) {
     return (
-      <Box className="flex-1 bg-background-300 justify-center items-center">
+      <Box className="flex-1 bg-background-50 justify-center items-center">
         <Text className="text-lg text-typography-500">加载中...</Text>
       </Box>
     );
   }
 
   return (
-    <Box className="flex-1 bg-background-300">
+    <Box className="flex-1 bg-background-50">
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
         <VStack className="space-y-8">
           <Text className="text-2xl font-bold mb-2">设置</Text>
@@ -309,7 +309,7 @@ export default function SettingsPage() {
               </FormControlLabel>
               <Input>
                 <InputField
-                  placeholder="例如: https://api.example.com"
+                  placeholder="例如: https://api.example.com/api/greader.php"
                   value={baseUrl}
                   onChangeText={setBaseUrl}
                   editable={!isSaving}
