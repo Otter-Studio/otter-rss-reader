@@ -6,7 +6,7 @@
  */
 import { Platform } from 'react-native';
 import { IDatabase } from './abstractions';
-import { ExpoSqliteDatabase } from './implementations/expo-sqlite';
+// import { ExpoSqliteDatabase } from './implementations/expo-sqlite';
 import { DexieDatabase } from './implementations/dexie';
 
 // 全局数据库实例
@@ -36,10 +36,12 @@ export async function initializeDatabase(): Promise<IDatabase> {
       tempInstance = new DexieDatabase();
     } else {
       // 移动平台：使用 Expo-SQLite 实现
-      console.log('[Database] Initializing Expo-SQLite database for Mobile platform');
-      tempInstance = new ExpoSqliteDatabase();
+      throw new Error("请实现移动端数据库");
+
+      // console.log('[Database] Initializing Expo-SQLite database for Mobile platform');
+      // tempInstance = new ExpoSqliteDatabase();
     }    // 调用数据库的初始化方法
-    await tempInstance.initialize();
+    // await tempInstance.initialize();
 
     // 只在初始化成功后才设置全局实例
     databaseInstance = tempInstance;
