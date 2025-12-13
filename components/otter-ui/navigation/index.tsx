@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   View,
   Text,
-  Image,
   LayoutAnimation,
 } from "react-native";
 import { tva } from "@gluestack-ui/utils/nativewind-utils";
@@ -29,7 +28,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 type Position = "top" | "bottom" | "left" | "right" | "auto";
 
 interface NavigationItem {
-  icon: React.ReactNode | string; // React 组件或图片 URL
+  icon?: (props: { className?: string }) => React.ReactNode; // 仅支持 React 组件/ReactNode
   title: string; // 项目标题
   key: string; // 唯一标识符
 }
@@ -75,7 +74,7 @@ const navigationStyle = tva({
 });
 
 const containerStyle = tva({
-  base: "flex justify-around items-center bg-background-100 border-t border-background-200",
+  base: "flex justify-around items-center bg-background-100 border-background-200",
   variants: {
     position: {
       top: "flex-row h-16 max-w-96 min-w-48",
@@ -106,8 +105,18 @@ const itemStyle = tva({
   },
 });
 
-const iconStyle = tva({
+const iconContainerStyle = tva({
   base: "w-8 h-8 flex justify-center items-center ",
+  variants: {
+    active: {
+      true: "text-primary-500",
+      false: "text-typography-400",
+    },
+  },
+});
+
+const iconStyle = tva({
+  base: "",
   variants: {
     active: {
       true: "text-primary-500",
@@ -120,7 +129,7 @@ const textStyle = tva({
   base: "text-sm font-medium",
   variants: {
     active: {
-      true: "text-typography-900 font-semibold",
+      true: "text-primary-500 font-semibold",
       false: "text-typography-400",
     },
     position: {
@@ -170,8 +179,6 @@ const AppNavigation: React.FC<AppNavigationProps> = ({
     return position;
   }, [position, dimensions]);
 
-  const limitedItems = items.slice(0, 5);
-
   // 根据位置计算底部安全区边距
   const safeAreaPadding = useMemo(() => {
     if (actualPosition === "bottom") {
@@ -185,6 +192,10 @@ const AppNavigation: React.FC<AppNavigationProps> = ({
     if (rounded === "full") return "rounded-full";
     return "rounded-xl";
   }, [rounded]);
+
+  const limitedItems = useMemo(() => {
+    return items.slice(0, 5);
+  }, [items]);
 
   return (
     <View
@@ -216,14 +227,11 @@ const AppNavigation: React.FC<AppNavigationProps> = ({
                 hasIcon,
               })}`}
             >
-              {typeof item.icon === "string" ? (
-                <Image
-                  source={{ uri: item.icon }}
-                  className={iconStyle({ active: isActive })}
-                />
-              ) : item.icon ? (
-                <View className={iconStyle({ active: isActive })}>
-                  {item.icon}
+              {item.icon ? (
+                <View className={`${iconContainerStyle({ active: isActive })}`}>
+                  {typeof item.icon === "function"
+                    ? item.icon({ className: iconStyle({ active: isActive }) })
+                    : item.icon}
                 </View>
               ) : null}
               <Text

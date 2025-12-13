@@ -83,19 +83,33 @@ function RootLayoutNav() {
   const router = useRouter();
 
   // 导航项配置（使用 useMemo 避免重复创建）
-  const navigationItems = [
+  interface NavigationItem {
+    icon:
+      | React.ReactNode
+      | ((props: { className?: string }) => React.ReactNode);
+    title: string;
+    key: string;
+  }
+
+  const navigationItems: NavigationItem[] = [
     {
-      icon: <Icon as={BookOpenText} size="lg" />,
+      icon: (props: { className?: string }) => (
+        <Icon as={BookOpenText} size="lg" className={props.className} />
+      ),
       title: "文章",
       key: "items",
     },
     {
-      icon: <Icon as={SquareLibrary} size="lg" />,
+      icon: (props: { className?: string }) => (
+        <Icon as={SquareLibrary} size="lg" className={props.className} />
+      ),
       title: "订阅",
       key: "feeds",
     },
     {
-      icon: <Icon as={Settings} size="lg" />,
+      icon: (props: { className?: string }) => (
+        <Icon as={Settings} size="lg" className={props.className} />
+      ),
       title: "设置",
       key: "settings",
     },
