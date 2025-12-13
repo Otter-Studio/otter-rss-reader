@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 import Dexie from 'dexie';
-import { openDatabase, SQLiteDatabase } from 'expo-sqlite';
+import { openDatabaseSync, SQLiteDatabase } from 'expo-sqlite';
 import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
 import type { IDatabase } from '@/db/abstractions/IDatabase';
 import type { ISettingsRepository } from '@/db/abstractions/ISettingsRepository';
@@ -62,7 +62,7 @@ export default class Database implements IDatabase {
       }
     } else {
       if (!this.sqliteDb) {
-        this.sqliteDb = openDatabase('otter_rss_db');
+        this.sqliteDb = openDatabaseSync('otter_rss_db');
         const adapter = new ExpoSQLiteAdapter<ISettings>(this.sqliteDb, settingsTable, 'id');
         this.settings = new SettingsRepository(adapter);
       }
