@@ -1,11 +1,11 @@
 /**
- * Dexie Feed 仓库实现
+ * Feed 仓库实现
  */
 
-import { IFeedRepository } from '../../../abstractions';
-import { IFeed } from '../../../models';
+import { IFeedRepository } from '../abstractions';
+import { IFeed } from '../models';
 
-export class DexieFeedRepository implements IFeedRepository {
+export class BaseFeedRepository implements IFeedRepository {
   constructor(private db: any) { }
 
   async add(feed: IFeed): Promise<IFeed> {
@@ -16,7 +16,7 @@ export class DexieFeedRepository implements IFeedRepository {
       await this.db.feeds.add(feed);
       return feed;
     } catch (error) {
-      console.error('[DexieFeedRepository] Failed to add feed:', error);
+      console.error('[BaseFeedRepository] Failed to add feed:', error);
       throw error;
     }
   }
@@ -36,7 +36,7 @@ export class DexieFeedRepository implements IFeedRepository {
       await this.db.feeds.put(updated);
       return updated;
     } catch (error) {
-      console.error('[DexieFeedRepository] Failed to update feed:', error);
+      console.error('[BaseFeedRepository] Failed to update feed:', error);
       throw error;
     }
   }
@@ -49,7 +49,7 @@ export class DexieFeedRepository implements IFeedRepository {
       await this.db.feeds.delete(id);
       return true;
     } catch (error) {
-      console.error('[DexieFeedRepository] Failed to delete feed:', error);
+      console.error('[BaseFeedRepository] Failed to delete feed:', error);
       throw error;
     }
   }
@@ -62,7 +62,7 @@ export class DexieFeedRepository implements IFeedRepository {
       const feed = await this.db.feeds.get(id);
       return feed || null;
     } catch (error) {
-      console.error('[DexieFeedRepository] Failed to get feed by id:', error);
+      console.error('[BaseFeedRepository] Failed to get feed by id:', error);
       throw error;
     }
   }
@@ -74,7 +74,7 @@ export class DexieFeedRepository implements IFeedRepository {
       }
       return await this.db.feeds.toArray();
     } catch (error) {
-      console.error('[DexieFeedRepository] Failed to get all feeds:', error);
+      console.error('[BaseFeedRepository] Failed to get all feeds:', error);
       return [];
     }
   }
@@ -87,7 +87,7 @@ export class DexieFeedRepository implements IFeedRepository {
       const feeds = await this.db.feeds.toArray();
       return feeds.filter((feed: IFeed) => feed.isActive !== false);
     } catch (error) {
-      console.error('[DexieFeedRepository] Failed to get active feeds:', error);
+      console.error('[BaseFeedRepository] Failed to get active feeds:', error);
       return [];
     }
   }
@@ -102,7 +102,7 @@ export class DexieFeedRepository implements IFeedRepository {
         feed.categoryIds?.includes(categoryId) || feed.categories?.some((c: any) => c.id === categoryId)
       );
     } catch (error) {
-      console.error('[DexieFeedRepository] Failed to get feeds by category:', error);
+      console.error('[BaseFeedRepository] Failed to get feeds by category:', error);
       return [];
     }
   }
@@ -120,7 +120,7 @@ export class DexieFeedRepository implements IFeedRepository {
         feed.url?.toLowerCase().includes(lowerKeyword)
       );
     } catch (error) {
-      console.error('[DexieFeedRepository] Failed to search feeds:', error);
+      console.error('[BaseFeedRepository] Failed to search feeds:', error);
       return [];
     }
   }
@@ -133,7 +133,7 @@ export class DexieFeedRepository implements IFeedRepository {
       const feeds = await this.db.feeds.toArray();
       return feeds.find((feed: IFeed) => feed.url === url) || null;
     } catch (error) {
-      console.error('[DexieFeedRepository] Failed to get feed by url:', error);
+      console.error('[BaseFeedRepository] Failed to get feed by url:', error);
       return null;
     }
   }
@@ -146,7 +146,7 @@ export class DexieFeedRepository implements IFeedRepository {
       await this.db.feeds.bulkAdd(feeds);
       return feeds;
     } catch (error) {
-      console.error('[DexieFeedRepository] Failed to add feeds in batch:', error);
+      console.error('[BaseFeedRepository] Failed to add feeds in batch:', error);
       throw error;
     }
   }
@@ -166,7 +166,7 @@ export class DexieFeedRepository implements IFeedRepository {
       }
       return results;
     } catch (error) {
-      console.error('[DexieFeedRepository] Failed to update feeds in batch:', error);
+      console.error('[BaseFeedRepository] Failed to update feeds in batch:', error);
       throw error;
     }
   }
@@ -179,7 +179,7 @@ export class DexieFeedRepository implements IFeedRepository {
       await this.db.feeds.bulkDelete(ids);
       return true;
     } catch (error) {
-      console.error('[DexieFeedRepository] Failed to delete feeds in batch:', error);
+      console.error('[BaseFeedRepository] Failed to delete feeds in batch:', error);
       throw error;
     }
   }
@@ -191,7 +191,7 @@ export class DexieFeedRepository implements IFeedRepository {
       }
       return await this.db.feeds.count();
     } catch (error) {
-      console.error('[DexieFeedRepository] Failed to count feeds:', error);
+      console.error('[BaseFeedRepository] Failed to count feeds:', error);
       return 0;
     }
   }
@@ -204,7 +204,7 @@ export class DexieFeedRepository implements IFeedRepository {
       const feeds = await this.db.feeds.toArray();
       return feeds.filter((feed: IFeed) => feed.isActive !== false).length;
     } catch (error) {
-      console.error('[DexieFeedRepository] Failed to count active feeds:', error);
+      console.error('[BaseFeedRepository] Failed to count active feeds:', error);
       return 0;
     }
   }

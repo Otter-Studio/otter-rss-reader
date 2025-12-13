@@ -1,11 +1,11 @@
 /**
- * Dexie Tag 仓库实现
+ * Tag 仓库实现
  */
 
-import { ITagRepository } from '../../../abstractions';
-import { ITag } from '../../../models';
+import { ITagRepository } from '../abstractions';
+import { ITag } from '../models';
 
-export class DexieTagRepository implements ITagRepository {
+export class BaseTagRepository implements ITagRepository {
   constructor(private db: any) { }
 
   async add(tag: ITag): Promise<ITag> {

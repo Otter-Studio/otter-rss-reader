@@ -1,11 +1,11 @@
 /**
- * Dexie Item 仓库实现
+ * Item 仓库实现
  */
 
-import { IItemRepository } from '../../../abstractions';
-import { IItem, IPaginationParams, IPaginatedResult } from '../../../models';
+import { IItemRepository } from '../abstractions';
+import { IItem, IPaginationParams, IPaginatedResult } from '../models';
 
-export class DexieItemRepository implements IItemRepository {
+export class BaseItemRepository implements IItemRepository {
   constructor(private db: any) { }
 
   async add(item: IItem): Promise<IItem> {
@@ -16,7 +16,7 @@ export class DexieItemRepository implements IItemRepository {
       await this.db.items.add(item);
       return item;
     } catch (error) {
-      console.error('[DexieItemRepository] Failed to add item:', error);
+      console.error('[BaseItemRepository] Failed to add item:', error);
       throw error;
     }
   }
@@ -36,7 +36,7 @@ export class DexieItemRepository implements IItemRepository {
       await this.db.items.put(updated);
       return updated;
     } catch (error) {
-      console.error('[DexieItemRepository] Failed to update item:', error);
+      console.error('[BaseItemRepository] Failed to update item:', error);
       throw error;
     }
   }
@@ -49,7 +49,7 @@ export class DexieItemRepository implements IItemRepository {
       await this.db.items.delete(id);
       return true;
     } catch (error) {
-      console.error('[DexieItemRepository] Failed to delete item:', error);
+      console.error('[BaseItemRepository] Failed to delete item:', error);
       throw error;
     }
   }
@@ -62,7 +62,7 @@ export class DexieItemRepository implements IItemRepository {
       const item = await this.db.items.get(id);
       return item || null;
     } catch (error) {
-      console.error('[DexieItemRepository] Failed to get item by id:', error);
+      console.error('[BaseItemRepository] Failed to get item by id:', error);
       throw error;
     }
   }
@@ -74,7 +74,7 @@ export class DexieItemRepository implements IItemRepository {
       }
       return await this.db.items.toArray();
     } catch (error) {
-      console.error('[DexieItemRepository] Failed to get all items:', error);
+      console.error('[BaseItemRepository] Failed to get all items:', error);
       return [];
     }
   }
@@ -94,7 +94,7 @@ export class DexieItemRepository implements IItemRepository {
 
       return { items: data, total, page: params.page, pageSize: params.pageSize, totalPages };
     } catch (error) {
-      console.error('[DexieItemRepository] Failed to get items paginated:', error);
+      console.error('[BaseItemRepository] Failed to get items paginated:', error);
       return { items: [], total: 0, page: params.page, pageSize: params.pageSize, totalPages: 0 };
     }
   }
@@ -107,7 +107,7 @@ export class DexieItemRepository implements IItemRepository {
       const items = await this.db.items.toArray();
       return items.filter((item: IItem) => item.feedId === feedId);
     } catch (error) {
-      console.error('[DexieItemRepository] Failed to get items by feed id:', error);
+      console.error('[BaseItemRepository] Failed to get items by feed id:', error);
       return [];
     }
   }
@@ -131,7 +131,7 @@ export class DexieItemRepository implements IItemRepository {
 
       return { items: data, total, page: params.page, pageSize: params.pageSize, totalPages };
     } catch (error) {
-      console.error('[DexieItemRepository] Failed to get items by feed id paginated:', error);
+      console.error('[BaseItemRepository] Failed to get items by feed id paginated:', error);
       return { items: [], total: 0, page: params.page, pageSize: params.pageSize, totalPages: 0 };
     }
   }
@@ -144,7 +144,7 @@ export class DexieItemRepository implements IItemRepository {
       const items = await this.db.items.toArray();
       return items.filter((item: IItem) => !item.isRead);
     } catch (error) {
-      console.error('[DexieItemRepository] Failed to get unread items:', error);
+      console.error('[BaseItemRepository] Failed to get unread items:', error);
       return [];
     }
   }
@@ -157,7 +157,7 @@ export class DexieItemRepository implements IItemRepository {
       const items = await this.db.items.toArray();
       return items.filter((item: IItem) => !item.isRead).length;
     } catch (error) {
-      console.error('[DexieItemRepository] Failed to count unread items:', error);
+      console.error('[BaseItemRepository] Failed to count unread items:', error);
       return 0;
     }
   }
@@ -170,7 +170,7 @@ export class DexieItemRepository implements IItemRepository {
       const items = await this.db.items.toArray();
       return items.filter((item: IItem) => item.isStarred);
     } catch (error) {
-      console.error('[DexieItemRepository] Failed to get starred items:', error);
+      console.error('[BaseItemRepository] Failed to get starred items:', error);
       return [];
     }
   }
@@ -185,7 +185,7 @@ export class DexieItemRepository implements IItemRepository {
         item.categoryIds?.includes(categoryId) || item.categories?.some((c: any) => c.id === categoryId)
       );
     } catch (error) {
-      console.error('[DexieItemRepository] Failed to get items by category:', error);
+      console.error('[BaseItemRepository] Failed to get items by category:', error);
       return [];
     }
   }
@@ -200,7 +200,7 @@ export class DexieItemRepository implements IItemRepository {
         item.tagIds?.includes(tagId) || item.tags?.some((t: any) => t.id === tagId)
       );
     } catch (error) {
-      console.error('[DexieItemRepository] Failed to get items by tag:', error);
+      console.error('[BaseItemRepository] Failed to get items by tag:', error);
       return [];
     }
   }
@@ -219,7 +219,7 @@ export class DexieItemRepository implements IItemRepository {
         item.author?.toLowerCase().includes(lowerKeyword)
       );
     } catch (error) {
-      console.error('[DexieItemRepository] Failed to search items:', error);
+      console.error('[BaseItemRepository] Failed to search items:', error);
       return [];
     }
   }
@@ -238,7 +238,7 @@ export class DexieItemRepository implements IItemRepository {
 
       return { items: data, total, page: params.page, pageSize: params.pageSize, totalPages };
     } catch (error) {
-      console.error('[DexieItemRepository] Failed to search items paginated:', error);
+      console.error('[BaseItemRepository] Failed to search items paginated:', error);
       return { items: [], total: 0, page: params.page, pageSize: params.pageSize, totalPages: 0 };
     }
   }
@@ -251,7 +251,7 @@ export class DexieItemRepository implements IItemRepository {
       const items = await this.db.items.toArray();
       return items.find((item: IItem) => item.link === link) || null;
     } catch (error) {
-      console.error('[DexieItemRepository] Failed to get item by link:', error);
+      console.error('[BaseItemRepository] Failed to get item by link:', error);
       return null;
     }
   }
@@ -260,7 +260,7 @@ export class DexieItemRepository implements IItemRepository {
     try {
       return await this.update(id, { isRead: true });
     } catch (error) {
-      console.error('[DexieItemRepository] Failed to mark item as read:', error);
+      console.error('[BaseItemRepository] Failed to mark item as read:', error);
       throw error;
     }
   }
@@ -269,7 +269,7 @@ export class DexieItemRepository implements IItemRepository {
     try {
       return await this.update(id, { isRead: false });
     } catch (error) {
-      console.error('[DexieItemRepository] Failed to mark item as unread:', error);
+      console.error('[BaseItemRepository] Failed to mark item as unread:', error);
       throw error;
     }
   }
@@ -283,7 +283,7 @@ export class DexieItemRepository implements IItemRepository {
       }
       return results;
     } catch (error) {
-      console.error('[DexieItemRepository] Failed to mark items as read in batch:', error);
+      console.error('[BaseItemRepository] Failed to mark items as read in batch:', error);
       throw error;
     }
   }
@@ -297,7 +297,7 @@ export class DexieItemRepository implements IItemRepository {
       }
       return results;
     } catch (error) {
-      console.error('[DexieItemRepository] Failed to mark items as unread in batch:', error);
+      console.error('[BaseItemRepository] Failed to mark items as unread in batch:', error);
       throw error;
     }
   }
@@ -306,7 +306,7 @@ export class DexieItemRepository implements IItemRepository {
     try {
       return await this.update(id, { isStarred: true });
     } catch (error) {
-      console.error('[DexieItemRepository] Failed to mark item as starred:', error);
+      console.error('[BaseItemRepository] Failed to mark item as starred:', error);
       throw error;
     }
   }
@@ -315,7 +315,7 @@ export class DexieItemRepository implements IItemRepository {
     try {
       return await this.update(id, { isStarred: false });
     } catch (error) {
-      console.error('[DexieItemRepository] Failed to unmark item as starred:', error);
+      console.error('[BaseItemRepository] Failed to unmark item as starred:', error);
       throw error;
     }
   }
@@ -328,7 +328,7 @@ export class DexieItemRepository implements IItemRepository {
       await this.db.items.bulkAdd(items);
       return items;
     } catch (error) {
-      console.error('[DexieItemRepository] Failed to add items in batch:', error);
+      console.error('[BaseItemRepository] Failed to add items in batch:', error);
       throw error;
     }
   }
@@ -344,7 +344,7 @@ export class DexieItemRepository implements IItemRepository {
       }
       return results;
     } catch (error) {
-      console.error('[DexieItemRepository] Failed to update items in batch:', error);
+      console.error('[BaseItemRepository] Failed to update items in batch:', error);
       throw error;
     }
   }
@@ -357,7 +357,7 @@ export class DexieItemRepository implements IItemRepository {
       await this.db.items.bulkDelete(ids);
       return true;
     } catch (error) {
-      console.error('[DexieItemRepository] Failed to delete items in batch:', error);
+      console.error('[BaseItemRepository] Failed to delete items in batch:', error);
       throw error;
     }
   }
@@ -369,7 +369,7 @@ export class DexieItemRepository implements IItemRepository {
       }
       return await this.db.items.count();
     } catch (error) {
-      console.error('[DexieItemRepository] Failed to count items:', error);
+      console.error('[BaseItemRepository] Failed to count items:', error);
       return 0;
     }
   }
@@ -386,7 +386,7 @@ export class DexieItemRepository implements IItemRepository {
       }
       return true;
     } catch (error) {
-      console.error('[DexieItemRepository] Failed to delete items by feed id:', error);
+      console.error('[BaseItemRepository] Failed to delete items by feed id:', error);
       throw error;
     }
   }

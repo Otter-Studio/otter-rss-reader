@@ -6,8 +6,7 @@
  */
 import { Platform } from 'react-native';
 import { IDatabase } from './abstractions';
-// import { ExpoSqliteDatabase } from './implementations/expo-sqlite';
-import { DexieDatabase } from './implementations/dexie';
+import Database from './implementations/Database';
 
 // 全局数据库实例
 let databaseInstance: IDatabase | null = null;
@@ -26,22 +25,10 @@ export async function initializeDatabase(): Promise<IDatabase> {
   let tempInstance: IDatabase | null = null;
   try {
     // 检测运行平台
-    const isWeb = Platform.OS === 'web';
-
-    console.log('[Database] Platform detected:', Platform.OS, '- Using', isWeb ? 'Dexie' : 'Expo-SQLite');
-
-    if (isWeb) {
-      // Web 平台：使用 Dexie 实现
-      console.log('[Database] Initializing Dexie database for Web platform');
-      tempInstance = new DexieDatabase();
-    } else {
-      // 移动平台：使用 Expo-SQLite 实现
-      throw new Error("请实现移动端数据库");
-
-      // console.log('[Database] Initializing Expo-SQLite database for Mobile platform');
-      // tempInstance = new ExpoSqliteDatabase();
-    }    // 调用数据库的初始化方法
-    // await tempInstance.initialize();
+    console.log('[Database] Platform detected:', Platform.OS);
+    tempInstance = new Database();
+    // 调用数据库的初始化方法
+    await tempInstance.initialize();
 
     // 只在初始化成功后才设置全局实例
     databaseInstance = tempInstance;

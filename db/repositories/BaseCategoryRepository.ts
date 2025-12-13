@@ -1,11 +1,11 @@
 /**
- * Dexie Category 仓库实现
+ * Category 仓库实现
  */
 
-import { ICategoryRepository } from '../../../abstractions';
-import { ICategory } from '../../../models';
+import { ICategoryRepository } from '../abstractions';
+import { ICategory } from '../models';
 
-export class DexieCategoryRepository implements ICategoryRepository {
+export class BaseCategoryRepository implements ICategoryRepository {
   constructor(private db: any) { }
 
   async add(category: ICategory): Promise<ICategory> {

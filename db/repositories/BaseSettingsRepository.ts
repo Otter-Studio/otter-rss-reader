@@ -1,11 +1,11 @@
 /**
- * Dexie Settings 仓库实现
+ * Settings 仓库实现
  */
 
-import { ISettingsRepository } from '../../../abstractions';
-import { ISettings } from '../../../models';
+import { ISettingsRepository } from '../abstractions';
+import { ISettings } from '../models';
 
-export class DexieSettingsRepository implements ISettingsRepository {
+export class BaseSettingsRepository implements ISettingsRepository {
   constructor(private db: any) { }
 
   private ensureDb(): void {
@@ -22,7 +22,7 @@ export class DexieSettingsRepository implements ISettingsRepository {
       const settings = await this.db.settings.get('default-settings');
       return settings || null;
     } catch (error) {
-      console.error('[DexieSettingsRepository] Failed to get settings:', error);
+      console.error('[BaseSettingsRepository] Failed to get settings:', error);
       throw error;
     }
   }
@@ -42,7 +42,7 @@ export class DexieSettingsRepository implements ISettingsRepository {
       await this.db.settings.put(settingsToSave);
       return settingsToSave;
     } catch (error) {
-      console.error('[DexieSettingsRepository] Failed to save settings:', error);
+      console.error('[BaseSettingsRepository] Failed to save settings:', error);
       throw error;
     }
   }
@@ -67,7 +67,7 @@ export class DexieSettingsRepository implements ISettingsRepository {
       await this.db.settings.put(updated);
       return updated;
     } catch (error) {
-      console.error('[DexieSettingsRepository] Failed to update settings:', error);
+      console.error('[BaseSettingsRepository] Failed to update settings:', error);
       throw error;
     }
   }
@@ -107,7 +107,7 @@ export class DexieSettingsRepository implements ISettingsRepository {
       await this.db.settings.put(defaultSettings);
       return defaultSettings;
     } catch (error) {
-      console.error('[DexieSettingsRepository] Failed to reset settings:', error);
+      console.error('[BaseSettingsRepository] Failed to reset settings:', error);
       throw error;
     }
   }
@@ -121,7 +121,7 @@ export class DexieSettingsRepository implements ISettingsRepository {
       const settings = await this.db.settings.get('default-settings');
       return !!settings;
     } catch (error) {
-      console.error('[DexieSettingsRepository] Failed to check if settings exist:', error);
+      console.error('[BaseSettingsRepository] Failed to check if settings exist:', error);
       return false;
     }
   }
