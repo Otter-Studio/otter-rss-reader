@@ -26,6 +26,9 @@ export interface IItem extends IBaseEntity {
   /** 文章链接 */
   link: string;
 
+  /** 文章原文网站链接 */
+  htmlUrl?: string;
+
   /** 文章图片 URL */
   image?: string;
 

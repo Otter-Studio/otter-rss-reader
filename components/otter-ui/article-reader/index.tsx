@@ -58,6 +58,7 @@ export interface ArticleItem {
   };
   author?: string;
   published?: number;
+  htmlUrl?: string;
   origin?: {
     title: string;
     htmlUrl?: string;
@@ -199,8 +200,16 @@ export const ArticleReader = ({
               </VStack>
             </HStack>
           </Box>
-          {isDoubleTap && currentArticle.origin?.htmlUrl ? (
-            <WebView source={{ uri: currentArticle.origin?.htmlUrl }} />
+          {isDoubleTap &&
+          (currentArticle.htmlUrl || currentArticle.origin?.htmlUrl) ? (
+            <WebView
+              source={{
+                uri:
+                  currentArticle.htmlUrl ||
+                  currentArticle.origin?.htmlUrl ||
+                  "",
+              }}
+            />
           ) : (
             ReaderMap[type](contentHTML)
           )}

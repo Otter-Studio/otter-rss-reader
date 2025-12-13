@@ -61,7 +61,7 @@ export const useCachedItem = (options: UseCachedItemOptions): UseCachedItemRetur
             categories: [],
             origin: {
               streamId: dbArticle.feedId,
-              htmlUrl: '',
+              htmlUrl: dbArticle.htmlUrl || link,
               title: '',
             },
             crawlTimeMsec: created,

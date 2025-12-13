@@ -588,6 +588,7 @@ export class CacheManager {
           content: item.content || item.summary?.content || '',
           author: item.author || '',
           link,
+          htmlUrl: item.origin?.htmlUrl || link,
           feedId: item.origin?.streamId || 'unknown',
           published,
           crawlTime: item.crawlTimeMsec ?? now,
