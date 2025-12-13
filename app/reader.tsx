@@ -4,11 +4,11 @@ import { PanResponder, View } from "react-native";
 import { Box } from "@/components/ui/box";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
-import { Spinner } from "@/components/ui/spinner";
 import {
   ArticleReader,
   ArticleItem,
 } from "@/components/otter-ui/article-reader";
+import { LoadingBar } from "@/components/otter-ui/loading-bar";
 import { useCachedItem } from "@/hooks/useCache";
 import { tv } from "tailwind-variants";
 
@@ -16,10 +16,6 @@ import { tv } from "tailwind-variants";
 
 const container = tv({
   base: "flex-1 bg-background-0 dark:bg-background-800",
-});
-
-const loadingContainer = tv({
-  base: "flex-1 bg-background-0 dark:bg-background-800 flex justify-center items-center",
 });
 
 // ========== 组件 ==========
@@ -33,8 +29,8 @@ export default function ReaderPage() {
 
   if (!itemId) {
     return (
-      <Box className={loadingContainer()}>
-        <VStack className="items-center">
+      <Box className={container()}>
+        <VStack className="flex-1 items-center justify-center">
           <Text className="text-error-600 dark:text-error-300 text-lg font-bold">
             文章 ID 未提供
           </Text>
@@ -45,33 +41,24 @@ export default function ReaderPage() {
 
   const { item, loading, error, refresh } = useCachedItem({ id: itemId });
 
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderRelease: (evt, gestureState) => {
-        // 保留手势支持，后续可扩展
-      },
-    })
-  ).current;
-
   if (loading) {
     return (
-      <Box className={loadingContainer({})}>
-        <VStack className="items-center">
-          <Spinner size="large" />
-          <Text className="text-typography-600 dark:text-typography-300 mt-4">
+      <View className={container()}>
+        <LoadingBar isLoading={true} />
+        <VStack className="flex-1 items-center justify-center">
+          <Text className="text-typography-600 dark:text-typography-300">
             加载文章中...
           </Text>
         </VStack>
-      </Box>
+      </View>
     );
   }
 
   if (error) {
     return (
-      <Box className={loadingContainer({})}>
-        <VStack className="items-center">
+      <Box className={container()}>
+        <LoadingBar isLoading={false} />
+        <VStack className="flex-1 items-center justify-center px-4">
           <Text className="text-lg font-bold text-error-600 dark:text-error-300">
             ⚠️ 加载失败
           </Text>
@@ -85,8 +72,9 @@ export default function ReaderPage() {
 
   if (!item) {
     return (
-      <Box className={loadingContainer({})}>
-        <VStack className="items-center">
+      <Box className={container()}>
+        <LoadingBar isLoading={false} />
+        <VStack className="flex-1 items-center justify-center">
           <Text className="text-lg font-bold text-typography-600 dark:text-typography-300">
             找不到文章
           </Text>
@@ -108,7 +96,7 @@ export default function ReaderPage() {
   ];
 
   return (
-    <View className={container()} {...panResponder.panHandlers}>
+    <View className={container()}>
       <ArticleReader articles={articles} currentIndex={0} />
     </View>
   );

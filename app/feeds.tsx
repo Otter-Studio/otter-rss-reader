@@ -4,12 +4,12 @@ import { Box } from "@/components/ui/box";
 import { Text } from "@/components/ui/text";
 import { FlatList } from "@/components/ui/flat-list";
 import { SectionList } from "@/components/ui/section-list";
-import { Spinner } from "@/components/ui/spinner";
 import { Pressable } from "@/components/ui/pressable";
 import { Switch } from "@/components/ui/switch";
 import { Icon } from "@/components/ui/icon";
 import { useCachedFeeds } from "@/hooks/useCache/useCachedFeeds";
 import { useCachedCategories } from "@/hooks/useCache/useCachedCategories";
+import { LoadingBar } from "@/components/otter-ui/loading-bar";
 import type { IFeed } from "libseymour";
 import { tva } from "@gluestack-ui/utils/nativewind-utils";
 import { ChevronRight } from "lucide-react-native";
@@ -32,19 +32,6 @@ const title = tva({
 /** 副标题 */
 const subtitle = tva({
   base: "text-sm text-typography-500 dark:text-typography-400",
-});
-
-/** Loading 容器 */
-const loadingContainer = tva({
-  base: "flex-1 bg-background-0 dark:bg-background-800 flex justify-center items-center",
-});
-
-/** Loading 内容 */
-const loadingContent = tva({ base: "items-center" });
-
-/** Loading 文字 */
-const loadingText = tva({
-  base: "text-typography-600 dark:text-typography-300 mt-4",
 });
 
 /** 错误容器 */
@@ -254,11 +241,8 @@ export default function FeedsPage() {
 
   if (loading) {
     return (
-      <Box className={loadingContainer({})}>
-        <Box className={loadingContent({})}>
-          <Spinner size="large" />
-          <Text className={loadingText({})}>加载中...</Text>
-        </Box>
+      <Box className={container({})}>
+        <LoadingBar isLoading={loading} />
       </Box>
     );
   }
@@ -276,6 +260,9 @@ export default function FeedsPage() {
 
   return (
     <Box className={container({})}>
+      {/* Loading 条 */}
+      <LoadingBar isLoading={false} />
+
       {/* 头部 */}
       <Box className={header({})}>
         <Box className="mb-2">

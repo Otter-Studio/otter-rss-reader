@@ -3,9 +3,9 @@ import { useLocalSearchParams, useRouter, Link } from "expo-router";
 import { Box } from "@/components/ui/box";
 import { Text } from "@/components/ui/text";
 import { FlatList } from "@/components/ui/flat-list";
-import { Spinner } from "@/components/ui/spinner";
 import { Pressable } from "@/components/ui/pressable";
 import { useCachedItems } from "@/hooks/useCache";
+import { LoadingBar } from "@/components/otter-ui/loading-bar";
 import { tva } from "@gluestack-ui/utils/nativewind-utils";
 
 /** 主容器 */
@@ -26,19 +26,6 @@ const title = tva({
 /** 副标题 */
 const subtitle = tva({
   base: "text-sm text-typography-500 dark:text-typography-400",
-});
-
-/** Loading 容器 */
-const loadingContainer = tva({
-  base: "flex-1 bg-background-0 dark:bg-background-800 flex justify-center items-center",
-});
-
-/** Loading 内容 */
-const loadingContent = tva({ base: "items-center" });
-
-/** Loading 文字 */
-const loadingText = tva({
-  base: "text-typography-600 dark:text-typography-300 mt-4",
 });
 
 /** 错误容器 */
@@ -144,17 +131,6 @@ export default function ItemsPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <Box className={loadingContainer({})}>
-        <Box className={loadingContent({})}>
-          <Spinner size="large" />
-          <Text className={loadingText({})}>加载中...</Text>
-        </Box>
-      </Box>
-    );
-  }
-
   if (error) {
     return (
       <Box className={errorContainer({})}>
@@ -229,6 +205,8 @@ export default function ItemsPage() {
             : `全部文章 · ${total} 篇`}
         </Text>
       </Box>
+
+      <LoadingBar isLoading={loading} />
 
       {/* 内容 */}
       {items.length === 0 ? (
