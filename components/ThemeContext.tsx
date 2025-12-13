@@ -1,4 +1,12 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useMemo,
+  useCallback,
+  useRef,
+} from "react";
 import { SettingsOperations } from "@/db/settings";
 import { useColorScheme } from "./useColorScheme";
 
@@ -16,13 +24,17 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [themeSetting, setThemeSettingState] = useState<ColorMode>("light");
   const [colorMode, setColorMode] = useState<"light" | "dark">("light");
   const systemColorScheme = useColorScheme();
+  const isInitialized = useRef(false);
 
-  // 初始化主题设置
+  // 初始化主题设置（仅一次）
   useEffect(() => {
+    if (isInitialized.current) return;
+    isInitialized.current = true;
+
     const initTheme = async () => {
       try {
         const settings = await SettingsOperations.getSettings();
-        if (settings) {
+        if (settings && settings.theme) {
           setThemeSettingState(settings.theme);
           // 应用主题
           applyTheme(settings.theme);
@@ -33,6 +45,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     };
 
     initTheme();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // 当系统颜色方案改变时更新
@@ -43,16 +56,19 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
   }, [systemColorScheme, themeSetting]);
 
-  const applyTheme = (theme: ColorMode) => {
-    if (theme === "system") {
-      const systemTheme = systemColorScheme || "light";
-      setColorMode(systemTheme);
-      updateDOMTheme(systemTheme);
-    } else {
-      setColorMode(theme as "light" | "dark");
-      updateDOMTheme(theme as "light" | "dark");
-    }
-  };
+  const applyTheme = useCallback(
+    (theme: ColorMode) => {
+      if (theme === "system") {
+        const systemTheme = systemColorScheme || "light";
+        setColorMode(systemTheme);
+        updateDOMTheme(systemTheme);
+      } else {
+        setColorMode(theme as "light" | "dark");
+        updateDOMTheme(theme as "light" | "dark");
+      }
+    },
+    [systemColorScheme]
+  );
 
   const updateDOMTheme = (mode: "light" | "dark") => {
     if (typeof document !== "undefined") {
@@ -65,24 +81,32 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const setThemeSetting = async (theme: ColorMode) => {
-    try {
-      // 先更新本地状态
-      setThemeSettingState(theme);
+  const setThemeSetting = useCallback(
+    async (theme: ColorMode) => {
+      try {
+        // 先更新本地状态
+        setThemeSettingState(theme);
 
-      // 应用主题
-      applyTheme(theme);
+        // 应用主题
+        applyTheme(theme);
 
-      // 然后保存到数据库
-      await SettingsOperations.updateSettings({ theme });
-    } catch (error) {
-      console.error("保存主题设置失败:", error);
-      throw error;
-    }
-  };
+        // 然后保存到数据库
+        await SettingsOperations.updateSettings({ theme });
+      } catch (error) {
+        console.error("保存主题设置失败:", error);
+        throw error;
+      }
+    },
+    [applyTheme]
+  );
+
+  const contextValue = useMemo(
+    () => ({ colorMode, themeSetting, setThemeSetting }),
+    [colorMode, themeSetting, setThemeSetting]
+  );
 
   return (
-    <ThemeContext.Provider value={{ colorMode, themeSetting, setThemeSetting }}>
+    <ThemeContext.Provider value={contextValue}>
       {children}
     </ThemeContext.Provider>
   );

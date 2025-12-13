@@ -43,19 +43,19 @@ async function retryOperation<T>(
   baseDelay: number = 100
 ): Promise<T> {
   let lastError: any;
-  
+
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       return await operation();
     } catch (error: any) {
       lastError = error;
       const errorMessage = (error as any).message || String(error);
-      
+
       // 检查是否是可重试的错误（数据库锁定）
       if (!errorMessage.includes('database is locked')) {
         throw error; // 不可重试的错误，立即抛出
       }
-      
+
       if (attempt < maxRetries - 1) {
         // 使用指数退避延迟
         const delay = baseDelay * Math.pow(2, attempt);
@@ -66,7 +66,7 @@ async function retryOperation<T>(
       }
     }
   }
-  
+
   throw lastError;
 }
 
@@ -79,17 +79,39 @@ export const SettingsOperations = {
   /**
    * 获取当前设置
    */
-  async getSettings(): Promise<ISettings> {
-    try {
-      return await retryOperation(async () => {
-        const database = await getDatabase();
-        const settings = await database.settings.get();
-        return settings || DEFAULT_SETTINGS;
-      }, 'getSettings');
-    } catch (error) {
-      console.error('[SettingsOperations] Failed to get settings:', error);
-      return DEFAULT_SETTINGS;
+  async getSettings(): Promise<Partial<ISettings>> {
+    // 内存缓存与并发保护：避免重复获取设置
+    if (settingsCache) {
+      return settingsCache;
     }
+    if (settingsInFlight) {
+      return settingsInFlight;
+    }
+
+    settingsInFlight = (async () => {
+      try {
+        const result = await retryOperation(async () => {
+          const database = await getDatabase();
+          const settings = await database.settings.get();
+          // 若读取到空/无效设置，返回空对象以便上层自行处理
+          return settings ?? {};
+        }, 'getSettings');
+
+        // 仅当结果为非空对象且包含任何键时缓存，否则返回空对象但不缓存
+        if (result && Object.keys(result as any).length > 0) {
+          settingsCache = result;
+        }
+        return result;
+      } catch (error) {
+        console.error('[SettingsOperations] Failed to get settings:', error);
+        // 发生错误时返回空对象而不是默认设置，避免误判为已配置
+        return {};
+      } finally {
+        settingsInFlight = null;
+      }
+    })();
+
+    return settingsInFlight;
   },
 
   /**
@@ -131,7 +153,10 @@ export const SettingsOperations = {
           return settings;
         }
 
-        return await this.getSettings();
+        const current = await this.getSettings();
+        return (current && Object.keys(current as any).length > 0)
+          ? (current as ISettings)
+          : DEFAULT_SETTINGS;
       }, 'initializeSettings');
     } catch (error) {
       console.error('[SettingsOperations] Failed to initialize settings:', error);
@@ -157,6 +182,8 @@ export const SettingsOperations = {
           updatedAt: new Date(),
         });
         console.log('[SettingsOperations] User info updated');
+        // 更新缓存，避免后续再次读取
+        settingsCache = updated;
         return updated;
       }, 'setUserInfo');
     } catch (error) {
@@ -177,6 +204,7 @@ export const SettingsOperations = {
           updatedAt: new Date(),
         });
         console.log('[SettingsOperations] Settings updated:', updated);
+        settingsCache = updated;
         return updated;
       }, 'updateSettings');
     } catch (error) {
@@ -194,6 +222,8 @@ export const SettingsOperations = {
         const database = await getDatabase();
         const reset = await database.settings.reset();
         console.log('[SettingsOperations] Settings reset to default');
+        // 清除缓存
+        settingsCache = null;
         return reset;
       }, 'resetSettings');
     } catch (error) {
@@ -202,4 +232,8 @@ export const SettingsOperations = {
     }
   },
 };
+
+// 模块级内存缓存与并发中的 Promise
+let settingsCache: Partial<ISettings> | null = null;
+let settingsInFlight: Promise<Partial<ISettings>> | null = null;
 

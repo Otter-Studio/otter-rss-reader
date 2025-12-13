@@ -11,7 +11,7 @@ import { useState, useEffect, useRef } from 'react';
 import type { IFeedItem, IFeed, ITag, IUnreadCount } from 'libseymour';
 import { getReader } from '@/api';
 import type { CacheContextType, CacheState, CacheLoadingState, CacheErrorState, Category } from './types';
-import { FeedOperations, ArticleOperations } from '@/db';
+import { FeedOperations, ArticleOperations, SettingsOperations } from '@/db';
 
 /**
  * 缓存管理器类
@@ -151,6 +151,13 @@ export class CacheManager {
     }
 
     // Step 2: 后台异步从 API 更新（不阻塞）
+    // 检查 baseUrl 是否配置，未配置则跳过 API 调用
+    const settings = await SettingsOperations.getSettings();
+    if (!settings.baseUrl) {
+      console.log('[Cache] Skipping feeds refresh - baseUrl not configured');
+      return;
+    }
+
     this.loading.feeds = true;
     this.updateOverallLoading();
     this.notify();
@@ -228,6 +235,13 @@ export class CacheManager {
     }
 
     // Step 2: 后台异步从 API 更新
+    // 检查 baseUrl 是否配置，未配置则跳过 API 调用
+    const settings = await SettingsOperations.getSettings();
+    if (!settings.baseUrl) {
+      console.log('[Cache] Skipping items refresh - baseUrl not configured');
+      return;
+    }
+
     this.loading.items = true;
     this.updateOverallLoading();
     this.notify();
@@ -280,6 +294,13 @@ export class CacheManager {
    * 刷新标签列表
    */
   async refreshTags(): Promise<void> {
+    // 检查 baseUrl 是否配置，未配置则跳过 API 调用
+    const settings = await SettingsOperations.getSettings();
+    if (!settings.baseUrl) {
+      console.log('[Cache] Skipping tags refresh - baseUrl not configured');
+      return;
+    }
+
     this.loading.tags = true;
     this.updateOverallLoading();
     this.notify();
@@ -335,6 +356,13 @@ export class CacheManager {
    * 刷新未读数统计
    */
   async refreshUnreadCounts(): Promise<void> {
+    // 检查 baseUrl 是否配置，未配置则跳过 API 调用
+    const settings = await SettingsOperations.getSettings();
+    if (!settings.baseUrl) {
+      console.log('[Cache] Skipping unread counts refresh - baseUrl not configured');
+      return;
+    }
+
     this.loading.unreadCounts = true;
     this.updateOverallLoading();
     this.notify();
@@ -445,9 +473,14 @@ export class CacheManager {
         this.refreshItems(),
       ]);
 
-      // Step 2: 启动后台定时刷新
-      this.startAutoRefresh();
-      console.log('[Cache] Initialization complete, auto-refresh started');
+      // Step 2: 仅在 baseUrl 配置后启动后台定时刷新
+      const settings = await SettingsOperations.getSettings();
+      if (settings.baseUrl) {
+        this.startAutoRefresh();
+        console.log('[Cache] Initialization complete, auto-refresh started');
+      } else {
+        console.log('[Cache] Initialization complete (auto-refresh disabled - baseUrl not configured)');
+      }
     } catch (err) {
       // 初始化失败可能是因为 API 未配置，这是警告而不是错误
       if (err instanceof Error && err.message.includes('not configured')) {
@@ -470,8 +503,11 @@ export class CacheManager {
    * 将 Feed 同步到数据库（异步）
    */
   private async _syncFeedsToDb(feeds: IFeed[]): Promise<void> {
-    try {
-      for (const feed of feeds) {
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (const feed of feeds) {
+      try {
         const existing = await FeedOperations.getFeedById(feed.id);
         if (existing) {
           // 更新现有的 Feed
@@ -481,19 +517,39 @@ export class CacheManager {
             iconUrl: feed.iconUrl,
           });
         } else {
-          // 新增 Feed
+          // 新增 Feed - 确保传入正确的 ID
           await FeedOperations.addFeed({
+            id: feed.id,
             title: feed.title,
             url: feed.url || feed.id,
             htmlUrl: feed.htmlUrl,
             iconUrl: feed.iconUrl,
           });
         }
+        successCount++;
+      } catch (err: any) {
+        errorCount++;
+        // 如果是 UNIQUE 约束错误，尝试更新
+        if (err?.message?.includes('UNIQUE constraint')) {
+          try {
+            await FeedOperations.updateFeed(feed.id, {
+              title: feed.title,
+              htmlUrl: feed.htmlUrl,
+              iconUrl: feed.iconUrl,
+            });
+            console.log(`[Cache] Feed ${feed.id} updated after UNIQUE conflict`);
+            successCount++;
+            errorCount--;
+          } catch (updateErr) {
+            console.error(`[Cache] Failed to sync feed ${feed.id}:`, updateErr);
+          }
+        } else {
+          console.error(`[Cache] Failed to sync feed ${feed.id}:`, err);
+        }
       }
-      console.log(`[Cache] Synced ${feeds.length} feeds to DB`);
-    } catch (err) {
-      console.error('[Cache] Error syncing feeds to DB:', err);
     }
+
+    console.log(`[Cache] Synced feeds to DB: ${successCount} success, ${errorCount} errors`);
   }
 
   /**
@@ -538,8 +594,19 @@ export class CacheManager {
         } as any;
       });
 
-      await ArticleOperations.addArticlesInBatch(articlesToAdd as any);
-      console.log(`[Cache] Synced ${items.length} articles to DB`);
+      // 批量获取所有已存在的文章 ID（性能优化：一次查询而非 N 次）
+      const existingArticles = await ArticleOperations.getRecentArticles(10000);
+      const existingIds = new Set(existingArticles.map(a => a.id));
+
+      // 过滤掉已存在的文章
+      const newArticles = articlesToAdd.filter(article => !existingIds.has(article.id));
+
+      if (newArticles.length > 0) {
+        await ArticleOperations.addArticlesInBatch(newArticles as any);
+        console.log(`[Cache] Synced ${newArticles.length} new articles to DB (${articlesToAdd.length - newArticles.length} already existed)`);
+      } else {
+        console.log(`[Cache] All ${articlesToAdd.length} articles already exist in DB`);
+      }
     } catch (err) {
       console.error('[Cache] Error syncing articles to DB:', err);
     }

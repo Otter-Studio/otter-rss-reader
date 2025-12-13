@@ -72,7 +72,7 @@ export default function SettingsPage() {
 
         const settings = await SettingsOperations.getSettings();
         if (settings) {
-          setTheme(settings.theme);
+          setTheme((settings.theme as "light" | "dark" | "system") ?? "light");
           setRefreshInterval(settings.refreshInterval ?? 30);
           setArticlesPerPage(settings.articlesPerPage ?? 20);
           setNotificationsEnabled(settings.notificationsEnabled ?? true);
@@ -108,7 +108,8 @@ export default function SettingsPage() {
     };
 
     loadSettings();
-  }, [toast]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // 保存设置
   const handleSave = async () => {
