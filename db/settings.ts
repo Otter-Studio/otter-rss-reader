@@ -231,6 +231,14 @@ export const SettingsOperations = {
       throw error;
     }
   },
+
+  /**
+   * 清除缓存（强制下次读取从数据库获取）
+   */
+  clearCache(): void {
+    settingsCache = null;
+    settingsInFlight = null;
+  },
 };
 
 // 模块级内存缓存与并发中的 Promise

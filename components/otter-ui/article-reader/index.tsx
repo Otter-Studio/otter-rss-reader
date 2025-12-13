@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect, useCallback } from "react";
 import { Box } from "@/components/ui/box";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
@@ -6,6 +6,8 @@ import { HStack } from "@/components/ui/hstack";
 import { tva } from "@gluestack-ui/utils/nativewind-utils";
 import RenderHTML from "react-native-render-html";
 import { useWindowDimensions, ScrollView } from "react-native";
+import { useFocusEffect } from "expo-router";
+import { SettingsOperations } from "@/db/settings";
 
 const container = tva({
   base: "flex-1 bg-background-0 dark:bg-background-800 flex flex-col",
@@ -58,6 +60,58 @@ export const ArticleReader = ({
   articles,
   currentIndex,
 }: ArticleReaderProps) => {
+  const [isImmersiveMode, setIsImmersiveMode] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // 加载沉浸式阅读设置
+  const loadReadingMode = useCallback(async () => {
+    try {
+      const settings = await SettingsOperations.getSettings();
+      setIsImmersiveMode(settings.readingModeEnabled ?? true);
+      console.log(
+        "[ArticleReader] Loaded reading mode:",
+        settings.readingModeEnabled
+      );
+    } catch (error) {
+      console.error("加载沉浸式阅读设置失败:", error);
+    }
+  }, []);
+
+  // 在组件挂载时加载
+  useEffect(() => {
+    loadReadingMode();
+  }, [loadReadingMode]);
+
+  // 在组件获得焦点时重新加载设置（解决切换页面后返回的问题）
+  useFocusEffect(
+    useCallback(() => {
+      console.log("[ArticleReader] Component focused, reloading settings");
+      // 清除缓存以获取最新的数据库值
+      SettingsOperations.clearCache();
+      loadReadingMode();
+    }, [loadReadingMode])
+  );
+
+  // 处理沉浸式阅读切换
+  const handleImmersiveToggle = async (value: boolean) => {
+    try {
+      setIsSaving(true);
+      setIsImmersiveMode(value);
+      console.log("[ArticleReader] Saving reading mode:", value);
+      // 保存设置到数据库
+      await SettingsOperations.updateSettings({
+        readingModeEnabled: value,
+      });
+      console.log("[ArticleReader] Reading mode saved successfully");
+    } catch (error) {
+      console.error("保存沉浸式阅读设置失败:", error);
+      // 恢复状态
+      setIsImmersiveMode(!value);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const currentArticle = useMemo(() => {
     return articles[currentIndex] || null;
   }, [articles, currentIndex]);
@@ -89,20 +143,24 @@ export const ArticleReader = ({
     <Box className={container({})}>
       {/* 头部 */}
       <Box className={header({})}>
-        <Text className={headerTitle({})}>{currentArticle.title}</Text>
-        <HStack className="mt-3 justify-between items-center">
-          <Text className={headerSubtitle({})}>
-            {currentArticle.origin?.title || "未知来源"}
-          </Text>
-          <Text className="text-xs text-typography-500 dark:text-typography-400">
-            {publishedTime}
-          </Text>
+        <HStack className="justify-between items-start">
+          <VStack className="flex-1">
+            <Text className={headerTitle({})}>{currentArticle.title}</Text>
+            <HStack className="mt-3 justify-between items-center">
+              <Text className={headerSubtitle({})}>
+                {currentArticle.origin?.title || "未知来源"}
+              </Text>
+              <Text className="text-xs text-typography-500 dark:text-typography-400">
+                {publishedTime}
+              </Text>
+            </HStack>
+            {currentArticle.author && (
+              <Text className="text-xs text-typography-500 dark:text-typography-400 mt-2">
+                {currentArticle.author}
+              </Text>
+            )}
+          </VStack>
         </HStack>
-        {currentArticle.author && (
-          <Text className="text-xs text-typography-500 dark:text-typography-400 mt-2">
-            {currentArticle.author}
-          </Text>
-        )}
       </Box>
 
       {/* 内容 */}

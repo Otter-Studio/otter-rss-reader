@@ -50,7 +50,7 @@ const errorMessage = tva({
 
 /** 文章项目 */
 const itemCard = tva({
-  base: "mx-4 mt-4 rounded-lg bg-background-100 dark:bg-background-900 border border-outline-200 dark:border-outline-700 p-4 transition-colors",
+  base: "mx-4 mt-4 rounded-lg bg-background-50 dark:bg-background-900 border border-outline-50 dark:border-outline-50 p-4 transition-colors",
 });
 
 /** 文章标题 */
@@ -151,6 +151,16 @@ export default function ItemsPage() {
     });
   };
 
+  function formatDescription(content: string): React.ReactNode {
+    // 移除所有 HTML 标签并截取前 300 个字符，移除没用的空格
+    return (
+      content
+        .replace(/<\/?[^>]+(>|$)/g, "")
+        .slice(0, 300)
+        .trim() + "..."
+    );
+  }
+
   const renderItemCard = ({ item }: { item: Article }) => (
     <Link
       href={{
@@ -176,7 +186,7 @@ export default function ItemsPage() {
           </Text>
           {item.summary?.content && (
             <Text className={itemDescription({})} numberOfLines={2}>
-              {item.summary.content}
+              {formatDescription(item.summary.content)}
             </Text>
           )}
           <Box className="flex-row justify-between items-center">

@@ -263,8 +263,8 @@ export default function SettingsPage() {
                       <SelectDragIndicator />
                     </SelectDragIndicatorWrapper>
                     <SelectItem label="浅色" value="light" />
-                    <SelectItem label="深色" value="dark" />
-                    <SelectItem label="跟随系统" value="system" />
+                    {/* <SelectItem label="深色" value="dark" /> */}
+                    {/* <SelectItem label="跟随系统" value="system" /> */}
                   </SelectContent>
                 </SelectPortal>
               </Select>
