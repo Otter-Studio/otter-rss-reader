@@ -27,7 +27,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
  */
 type Position = "top" | "bottom" | "left" | "right" | "auto";
 
-interface NavigationItem {
+export interface NavigationItem {
   icon?: (props: { className?: string }) => React.ReactNode; // 仅支持 React 组件/ReactNode
   title: string; // 项目标题
   key: string; // 唯一标识符
@@ -145,7 +145,7 @@ const textStyle = tva({
   },
 });
 
-const AppNavigation: React.FC<AppNavigationProps> = ({
+export const AppNavigation: React.FC<AppNavigationProps> = ({
   position = "auto",
   spacing = 0,
   items,
@@ -250,5 +250,3 @@ const AppNavigation: React.FC<AppNavigationProps> = ({
     </View>
   );
 };
-
-export { AppNavigation };

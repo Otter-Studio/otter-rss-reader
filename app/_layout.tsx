@@ -11,12 +11,11 @@ import {
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
-import { useColorScheme } from "@/components/useColorScheme";
 import { Slot, usePathname, useRouter } from "expo-router";
-import { StatusBar } from "expo-status-bar";
 import { Box } from "@/components/ui/box";
 import { Icon } from "@/components/ui/icon";
 import { AppNavigation } from "@/components/otter-ui/navigation";
+import type { NavigationItem } from "@/components/otter-ui/navigation";
 import { SquareLibrary, Settings, BookOpenText } from "lucide-react-native";
 import { dbManager } from "@/db/database";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
@@ -81,15 +80,6 @@ function RootLayoutNav() {
   const pathname = usePathname();
   const { colorMode } = useThemeContext();
   const router = useRouter();
-
-  // 导航项配置（使用 useMemo 避免重复创建）
-  interface NavigationItem {
-    icon:
-      | React.ReactNode
-      | ((props: { className?: string }) => React.ReactNode);
-    title: string;
-    key: string;
-  }
 
   const navigationItems: NavigationItem[] = [
     {
