@@ -139,14 +139,17 @@ export class CacheManager {
             categories: feed.category ? [{ id: feed.id, label: feed.category }] : [],
           })) as any;
 
-          // 轻量级加载状态 - 表示有本地数据
-          if (isInitialLoad) {
-            console.log(`[Cache] Loaded ${dbFeeds.length} feeds from DB (initial)`);
-            this.notify();
-          }
+          console.log(`[Cache] Loaded ${dbFeeds.length} feeds from DB (initial)`);
+        }
+        // 无论是否有数据，都通知更新，让 UI 显示空状态而不是 loading
+        if (isInitialLoad) {
+          this.notify();
         }
       } catch (err) {
         console.error('[Cache] Failed to load feeds from DB:', err);
+        if (isInitialLoad) {
+          this.notify();
+        }
       }
     }
 
@@ -227,10 +230,12 @@ export class CacheManager {
           });
 
           console.log(`[Cache] Loaded ${dbArticles.length} items from DB (feedId: ${feedId || 'all'})`);
-          this.notify();
         }
+        // 无论是否有数据，都通知更新
+        this.notify();
       } catch (err) {
         console.error('[Cache] Failed to load items from DB:', err);
+        this.notify();
       }
     }
 
