@@ -90,7 +90,7 @@ const itemStyle = tva({
   base: "flex items-center justify-center p-2 rounded-full",
   variants: {
     active: {
-      true: "bg-primary-500",
+      true: "bg-transparent",
       false: "bg-transparent",
     },
     position: {
@@ -110,8 +110,8 @@ const iconStyle = tva({
   base: "w-8 h-8 flex justify-center items-center ",
   variants: {
     active: {
-      true: "text-typography-0",
-      false: "text-typography-500",
+      true: "text-primary-500",
+      false: "text-typography-400",
     },
   },
 });
@@ -120,8 +120,8 @@ const textStyle = tva({
   base: "text-sm font-medium",
   variants: {
     active: {
-      true: "text-typography-0 font-bold",
-      false: "text-typography-500",
+      true: "text-typography-900 font-semibold",
+      false: "text-typography-400",
     },
     position: {
       top: "mx-1",
