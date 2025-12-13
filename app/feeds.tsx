@@ -283,12 +283,7 @@ export default function FeedsPage() {
           <Text className={switchLabel({})}>
             {isGrouped ? "按分类分组" : "列表视图"}
           </Text>
-          <Switch
-            value={isGrouped}
-            onValueChange={setIsGrouped}
-            accessible={true}
-            accessibilityLabel="Toggle between list and grouped view"
-          />
+          <Switch value={isGrouped} onValueChange={setIsGrouped} />
         </Box>
       )}
 
