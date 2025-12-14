@@ -15,11 +15,15 @@ const container = tva({
 });
 
 const header = tva({
-  base: "px-4 py-1 bg-background-50 flex justify-between flex-row",
+  base: "px-4 py-1 bg-background-50 flex justify-between items-center flex-row",
 });
 
-const headerText = tva({
-  base: "text-sm text-typography-500",
+const headerTitle = tva({
+  base: "text-sm text-typography-500 flex-1 mr-2 line-clamp-1",
+});
+
+const headerTime = tva({
+  base: "text-sm text-typography-500 shrink-0",
 });
 
 const info = tva({
@@ -27,7 +31,7 @@ const info = tva({
 });
 
 const infoTitle = tva({
-  base: "text-xl font-bold text-typography-900 line-clamp-2",
+  base: "text-xl font-bold text-typography-900",
 });
 
 const infoSubtitle = tva({
@@ -168,8 +172,8 @@ export const ArticleReader = ({
     <Box className={container({})} onTouchStart={handleDoubleTap}>
       {/* 头部 */}
       <Box className={header({})}>
-        <Text className={headerText({})}>{currentArticle.title}</Text>
-        <Text className={headerText({})}>{publishedTime}</Text>
+        <Text className={headerTitle({})}>{currentArticle.title}</Text>
+        <Text className={headerTime({})}>{publishedTime}</Text>
       </Box>
 
       {/* 内容 */}
