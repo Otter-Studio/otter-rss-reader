@@ -187,6 +187,16 @@ module.exports = {
       fontSize: {
         '2xs': '10px',
       },
+      keyframes: {
+        slideLeftRight: {
+          '0%': { transform: 'translateX(0)' },
+          '50%': { transform: 'translateX(calc(100vw - 5rem))' },
+          '100%': { transform: 'translateX(0)' },
+        },
+      },
+      animation: {
+        slideLeftRight: 'slideLeftRight 2s ease-in-out infinite',
+      },
       boxShadow: {
         'hard-1': '-2px 2px 8px 0px rgba(38, 38, 38, 0.20)',
         'hard-2': '0px 3px 10px 0px rgba(38, 38, 38, 0.20)',

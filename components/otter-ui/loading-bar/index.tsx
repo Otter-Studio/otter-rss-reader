@@ -1,50 +1,39 @@
 import React, { useEffect, useState } from "react";
 import { Box } from "@/components/ui/box";
 import { Progress, ProgressFilledTrack } from "@/components/ui/progress";
+import { tva } from "@gluestack-ui/utils/nativewind-utils";
 
 interface LoadingBarProps {
   isLoading?: boolean;
 }
 
+const loadingContainer = tva({
+  base: "w-full h-1",
+  variants: {
+    isLoading: {
+      true: "bg-background-50",
+      false: "bg-transparent",
+    },
+  },
+});
+
+const loadingLine = tva({
+  base: "w-20 h-1",
+  variants: {
+    isLoading: {
+      true: "bg-primary-500 animate-slideLeftRight",
+      false: "bg-transparent",
+    },
+  },
+});
 export const LoadingBar: React.FC<LoadingBarProps> = ({
   isLoading = false,
 }) => {
-  const [progress, setProgress] = useState(10);
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    if (isLoading) {
-      setVisible(true);
-      setProgress(10);
-
-      const interval = setInterval(() => {
-        setProgress((prev) => {
-          if (prev >= 90) return 90;
-          return prev + Math.random() * 20;
-        });
-      }, 500);
-
-      return () => clearInterval(interval);
-    } else {
-      // 当停止加载时，快速完成进度条
-      setProgress(100);
-
-      // 延迟隐藏，让用户看到完成动画
-      const hideTimeout = setTimeout(() => {
-        setVisible(false);
-      }, 300);
-
-      return () => clearTimeout(hideTimeout);
-    }
-  }, [isLoading]);
-
-  if (!visible) return null;
+  if (!isLoading) return null;
 
   return (
-    <Box className="w-full h-1 bg-transparent">
-      <Progress value={progress} className="w-full h-1" size="xs">
-        <ProgressFilledTrack />
-      </Progress>
+    <Box className={loadingContainer({ isLoading })}>
+      <Box className={loadingLine({ isLoading })}></Box>
     </Box>
   );
 };
