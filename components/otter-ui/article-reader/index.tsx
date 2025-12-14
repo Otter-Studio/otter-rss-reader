@@ -146,6 +146,12 @@ export const ArticleReader = ({
     return /<\/?[a-z][\s\S]*>/i.test(content) ? "html" : "text";
   }, [currentArticle]);
 
+  const contentHTML = currentArticle?.summary?.content || "无内容";
+  const publishedTime = currentArticle?.published
+    ? new Date(currentArticle.published * 1000).toLocaleDateString("zh-CN")
+    : "未知日期";
+
+  // 没有文章时显示空状态
   if (!currentArticle) {
     return (
       <Box className={container()}>
@@ -157,11 +163,6 @@ export const ArticleReader = ({
       </Box>
     );
   }
-
-  const contentHTML = currentArticle.summary?.content || "无内容";
-  const publishedTime = currentArticle.published
-    ? new Date(currentArticle.published * 1000).toLocaleDateString("zh-CN")
-    : "未知日期";
 
   return (
     <Box className={container({})} onTouchStart={handleDoubleTap}>
