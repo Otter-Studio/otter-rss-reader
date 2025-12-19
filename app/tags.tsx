@@ -11,27 +11,27 @@ import { tva } from "@gluestack-ui/utils/nativewind-utils";
 
 /** 主容器 */
 const container = tva({
-  base: "flex-1 bg-background-0 dark:bg-background-800",
+  base: "flex-1 bg-background-0",
 });
 
 /** 头部 */
 const header = tva({
-  base: "px-4 py-6 border-b border-outline-200 dark:border-outline-700 bg-background-100 dark:bg-background-900",
+  base: "px-4 py-6 border-b border-outline-200 bg-background-100",
 });
 
 /** 标题 */
 const title = tva({
-  base: "text-3xl font-bold text-typography-900 dark:text-typography-0",
+  base: "text-3xl font-bold text-typography-900",
 });
 
 /** 副标题 */
 const subtitle = tva({
-  base: "text-sm text-typography-500 dark:text-typography-400",
+  base: "text-sm text-typography-500",
 });
 
 /** Loading 容器 */
 const loadingContainer = tva({
-  base: "flex-1 bg-background-0 dark:bg-background-800 flex justify-center items-center",
+  base: "flex-1 bg-background-0 flex justify-center items-center",
 });
 
 /** Loading 内容 */
@@ -39,32 +39,32 @@ const loadingContent = tva({ base: "items-center" });
 
 /** Loading 文字 */
 const loadingText = tva({
-  base: "text-typography-600 dark:text-typography-300 mt-4",
+  base: "text-typography-600 mt-4",
 });
 
 /** 错误容器 */
 const errorContainer = tva({
-  base: "flex-1 bg-background-0 dark:bg-background-800 p-6 flex items-center",
+  base: "flex-1 bg-background-0 p-6 flex items-center",
 });
 
 /** 错误卡片 */
 const errorCard = tva({
-  base: "w-full rounded-lg bg-error-50 dark:bg-error-900 p-6 border border-error-200 dark:border-error-700",
+  base: "w-full rounded-lg bg-error-50 p-6 border border-error-200",
 });
 
 /** 错误标题 */
 const errorTitle = tva({
-  base: "text-xl font-bold text-error-600 dark:text-error-300",
+  base: "text-xl font-bold text-error-600",
 });
 
 /** 错误文字 */
 const errorMessage = tva({
-  base: "text-base text-error-700 dark:text-error-200 mt-3 leading-relaxed",
+  base: "text-base text-error-700 mt-3 leading-relaxed",
 });
 
 /** 标签项目 */
 const tagItem = tva({
-  base: "px-4 py-3 border-b border-outline-200 dark:border-outline-700 transition-colors",
+  base: "px-4 py-3 border-b border-outline-200 transition-colors",
 });
 
 /** 标签项目容器 */
@@ -75,22 +75,22 @@ const tagContent = tva({ base: "flex-1" });
 
 /** 标签标题 */
 const tagTitle = tva({
-  base: "text-base font-semibold text-typography-900 dark:text-typography-0",
+  base: "text-base font-semibold text-typography-900",
 });
 
 /** 标签描述 */
 const tagDescription = tva({
-  base: "text-sm text-typography-500 dark:text-typography-400 mt-1",
+  base: "text-sm text-typography-500 mt-1",
 });
 
 /** 未读徽章 */
 const unreadBadge = tva({
-  base: "bg-primary-500 dark:bg-primary-600 rounded-full px-2.5 py-1 ml-2",
+  base: "bg-primary-500 rounded-full px-2.5 py-1 ml-2",
 });
 
 /** 未读文字 */
 const unreadText = tva({
-  base: "text-xs font-semibold text-typography-0 dark:text-typography-900",
+  base: "text-xs font-semibold text-typography-0",
 });
 
 /** 空状态容器 */
@@ -104,12 +104,12 @@ const emptyEmoji = tva({ base: "text-4xl mb-4" });
 
 /** 空状态标题 */
 const emptyTitle = tva({
-  base: "text-lg font-semibold text-typography-900 dark:text-typography-0",
+  base: "text-lg font-semibold text-typography-900",
 });
 
 /** 空状态文字 */
 const emptyText = tva({
-  base: "text-sm text-typography-500 dark:text-typography-400 mt-2 text-center",
+  base: "text-sm text-typography-500 mt-2 text-center",
 });
 
 /** FlatList */

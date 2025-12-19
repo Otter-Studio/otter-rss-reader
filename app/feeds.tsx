@@ -16,7 +16,7 @@ import { ChevronRight } from "lucide-react-native";
 
 /** 主容器 */
 const container = tva({
-  base: "flex-1 bg-background-0 dark:bg-background-800",
+  base: "flex-1 bg-background-0",
 });
 
 /** 头部 */
@@ -31,27 +31,27 @@ const subtitle = tva({
 
 /** 错误容器 */
 const errorContainer = tva({
-  base: "flex-1 bg-background-0 dark:bg-background-800 p-6 flex items-center",
+  base: "flex-1 bg-background-0 p-6 flex items-center",
 });
 
 /** 错误卡片 */
 const errorCard = tva({
-  base: "w-full rounded-lg bg-error-50 dark:bg-error-900 p-6 border border-error-200 dark:border-error-700",
+  base: "w-full rounded-lg bg-error-50 p-6 border border-error-200",
 });
 
 /** 错误标题 */
 const errorTitle = tva({
-  base: "text-xl font-bold text-error-600 dark:text-error-300",
+  base: "text-xl font-bold text-error-600",
 });
 
 /** 错误文字 */
 const errorMessage = tva({
-  base: "text-base text-error-700 dark:text-error-200 mt-3 leading-relaxed",
+  base: "text-base text-error-700 mt-3 leading-relaxed",
 });
 
 /** Feed 项目 */
 const feedItem = tva({
-  base: "px-4 py-3 border-b border-outline-200 dark:border-outline-700 transition-colors",
+  base: "px-4 py-3 border-b border-outline-200 transition-colors",
 });
 
 /** Feed 项目容器 */
@@ -62,27 +62,27 @@ const feedContent = tva({ base: "flex-1" });
 
 /** Feed 图标 */
 const feedIcon = tva({
-  base: "text-typography-400 dark:text-typography-500 ml-2",
+  base: "text-typography-400 ml-2",
 });
 
 /** Feed 标题 */
 const feedTitle = tva({
-  base: "text-base font-semibold text-typography-900 dark:text-typography-0",
+  base: "text-base font-semibold text-typography-900",
 });
 
 /** Feed 描述 */
 const feedDescription = tva({
-  base: "text-sm text-typography-500 dark:text-typography-400 mt-1 line-clamp-2",
+  base: "text-sm text-typography-500 mt-1 line-clamp-2",
 });
 
 /** 未读徽章 */
 const unreadBadge = tva({
-  base: "bg-primary-500 dark:bg-primary-600 rounded-full px-2.5 py-1 ml-2",
+  base: "bg-primary-500 rounded-full px-2.5 py-1 ml-2",
 });
 
 /** 未读文字 */
 const unreadText = tva({
-  base: "text-xs font-semibold text-typography-0 dark:text-typography-900",
+  base: "text-xs font-semibold text-typography-0",
 });
 
 /** 空状态容器 */
@@ -96,12 +96,12 @@ const emptyEmoji = tva({ base: "text-4xl mb-4" });
 
 /** 空状态标题 */
 const emptyTitle = tva({
-  base: "text-lg font-semibold text-typography-900 dark:text-typography-0",
+  base: "text-lg font-semibold text-typography-900",
 });
 
 /** 空状态文字 */
 const emptyText = tva({
-  base: "text-sm text-typography-500 dark:text-typography-400 mt-2 text-center",
+  base: "text-sm text-typography-500 mt-2 text-center",
 });
 
 /** FlatList */
@@ -109,27 +109,27 @@ const flatList = tva({ base: "flex-1" });
 
 /** 切换容器 */
 const switchContainer = tva({
-  base: "px-4 py-3 border-b border-outline-200 dark:border-outline-700 flex-row items-center justify-between",
+  base: "px-4 py-3 border-b border-outline-200 flex-row items-center justify-between",
 });
 
 /** 切换标签 */
 const switchLabel = tva({
-  base: "text-sm font-medium text-typography-600 dark:text-typography-300",
+  base: "text-sm font-medium text-typography-600",
 });
 
 /** 分组标题 */
 const groupHeader = tva({
-  base: "px-4 py-2 bg-background-100 dark:bg-background-800 border-t border-outline-200 dark:border-outline-700 flex-row justify-between items-center",
+  base: "px-4 py-2 bg-background-100 border-t border-outline-200 flex-row justify-between items-center",
 });
 
 /** 分组标题文字 */
 const groupHeaderText = tva({
-  base: "text-sm font-semibold text-typography-700 dark:text-typography-200",
+  base: "text-sm font-semibold text-typography-700",
 });
 
 /** 分组图标 */
 const groupIcon = tva({
-  base: "text-typography-400 dark:text-typography-500",
+  base: "text-typography-400",
 });
 
 // ========== 组件 ==========

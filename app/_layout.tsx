@@ -123,7 +123,7 @@ function RootLayoutNav() {
           >
             <SafeAreaView style={{ flex: 1 }} edges={["top", "left", "right"]}>
               <Box
-                className={`flex-1 bg-background-0 dark:bg-background-800 flex flex-col`}
+                className={`flex-1 bg-background-0 flex flex-col`}
               >
                 <Box className="flex-1">
                   <Slot />
