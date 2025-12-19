@@ -10,7 +10,7 @@ import { tva } from "@gluestack-ui/utils/nativewind-utils";
 
 /** 主容器 */
 const container = tva({
-  base: "flex-1 bg-background-0 dark:bg-background-800",
+  base: "flex-1 bg-background-0",
 });
 
 /** 头部 */
@@ -25,42 +25,42 @@ const subtitle = tva({
 
 /** 错误容器 */
 const errorContainer = tva({
-  base: "flex-1 bg-background-0 dark:bg-background-800 p-6 flex items-center",
+  base: "flex-1 bg-background-0 p-6 flex items-center",
 });
 
 /** 错误卡片 */
 const errorCard = tva({
-  base: "w-full rounded-lg bg-error-50 dark:bg-error-900 p-6 border border-error-200 dark:border-error-700",
+  base: "w-full rounded-lg bg-error-50 p-6 border border-error-200",
 });
 
 /** 错误标题 */
 const errorTitle = tva({
-  base: "text-xl font-bold text-error-600 dark:text-error-300",
+  base: "text-xl font-bold text-error-600",
 });
 
 /** 错误文字 */
 const errorMessage = tva({
-  base: "text-base text-error-700 dark:text-error-200 mt-3 leading-relaxed",
+  base: "text-base text-error-700 mt-3 leading-relaxed",
 });
 
 /** 文章项目 */
 const itemCard = tva({
-  base: "mx-4 mt-4 rounded-lg bg-background-50 dark:bg-background-900 border border-outline-50 dark:border-outline-50 p-4 transition-colors",
+  base: "mx-4 mt-4 rounded-lg bg-background-50 border border-outline-50 p-4 transition-colors",
 });
 
 /** 文章标题 */
 const itemTitle = tva({
-  base: "text-base font-semibold text-typography-900 dark:text-typography-0 mb-2",
+  base: "text-base font-semibold text-typography-900 mb-2",
 });
 
 /** 文章描述 */
 const itemDescription = tva({
-  base: "text-sm text-typography-500 dark:text-typography-400 line-clamp-2 mb-3",
+  base: "text-sm text-typography-500 line-clamp-2 mb-3",
 });
 
 /** 文章元信息 */
 const itemMeta = tva({
-  base: "text-xs text-typography-400 dark:text-typography-500",
+  base: "text-xs text-typography-400",
 });
 
 /** 空状态容器 */
@@ -74,12 +74,12 @@ const emptyEmoji = tva({ base: "text-4xl mb-4" });
 
 /** 空状态标题 */
 const emptyTitle = tva({
-  base: "text-lg font-semibold text-typography-900 dark:text-typography-0",
+  base: "text-lg font-semibold text-typography-900",
 });
 
 /** 空状态文字 */
 const emptyText = tva({
-  base: "text-sm text-typography-500 dark:text-typography-400 mt-2 text-center",
+  base: "text-sm text-typography-500 mt-2 text-center",
 });
 
 /** FlatList */
