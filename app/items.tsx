@@ -232,7 +232,7 @@ export default function ItemsPage() {
           onRefresh={handleRefresh}
           ListFooterComponent={
             <Box className="h-8 flex justify-center items-center mb-4">
-              <Text className="text-xs text-typography-500 dark:text-typography-400">
+              <Text className="text-xs text-typography-500">
                 {items.length} / {total} 篇文章
               </Text>
             </Box>

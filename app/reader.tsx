@@ -15,7 +15,7 @@ import { tv } from "tailwind-variants";
 // ========== 样式定义 ==========
 
 const container = tv({
-  base: "flex-1 bg-background-0 dark:bg-background-800",
+  base: "flex-1 bg-background-0",
 });
 
 // ========== 组件 ==========
@@ -31,7 +31,7 @@ export default function ReaderPage() {
     return (
       <Box className={container()}>
         <VStack className="flex-1 items-center justify-center flex">
-          <Text className="text-error-600 dark:text-error-300 text-lg font-bold">
+          <Text className="text-error-600 text-lg font-bold">
             文章 ID 未提供
           </Text>
         </VStack>
@@ -46,7 +46,7 @@ export default function ReaderPage() {
       <View className={container()}>
         <LoadingBar isLoading={true} />
         <VStack className="flex-1 items-center justify-center">
-          <Text className="text-typography-600 dark:text-typography-300">
+          <Text className="text-typography-600">
             加载文章中...
           </Text>
         </VStack>
@@ -59,10 +59,10 @@ export default function ReaderPage() {
       <Box className={container()}>
         <LoadingBar isLoading={false} />
         <VStack className="flex-1 items-center justify-center px-4">
-          <Text className="text-lg font-bold text-error-600 dark:text-error-300">
+          <Text className="text-lg font-bold text-error-600">
             ⚠️ 加载失败
           </Text>
-          <Text className="text-sm text-error-500 dark:text-error-400 mt-2">
+          <Text className="text-sm text-error-500 mt-2">
             {error.message}
           </Text>
         </VStack>
@@ -75,7 +75,7 @@ export default function ReaderPage() {
       <Box className={container()}>
         <LoadingBar isLoading={false} />
         <VStack className="flex-1 items-center justify-center">
-          <Text className="text-lg font-bold text-typography-600 dark:text-typography-300">
+          <Text className="text-lg font-bold text-typography-600">
             找不到文章
           </Text>
         </VStack>
