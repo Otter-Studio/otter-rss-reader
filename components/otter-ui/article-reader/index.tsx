@@ -84,12 +84,6 @@ export const ArticleReader = ({
 }: ArticleReaderProps) => {
   const [isImmersiveMode, setIsImmersiveMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [isDoubleTap, setIsDoubleTap] = useState(false);
-
-  const handleDoubleTap = useCallback(() => {
-    setIsDoubleTap(true);
-    setTimeout(() => setIsDoubleTap(false), 300);
-  }, []);
 
   // 加载沉浸式阅读设置
   const loadReadingMode = useCallback(async () => {
@@ -119,26 +113,6 @@ export const ArticleReader = ({
       loadReadingMode();
     }, [loadReadingMode])
   );
-
-  // 处理沉浸式阅读切换
-  const handleImmersiveToggle = async (value: boolean) => {
-    try {
-      setIsSaving(true);
-      setIsImmersiveMode(value);
-      console.log("[ArticleReader] Saving reading mode:", value);
-      // 保存设置到数据库
-      await SettingsOperations.updateSettings({
-        readingModeEnabled: value,
-      });
-      console.log("[ArticleReader] Reading mode saved successfully");
-    } catch (error) {
-      console.error("保存沉浸式阅读设置失败:", error);
-      // 恢复状态
-      setIsImmersiveMode(!value);
-    } finally {
-      setIsSaving(false);
-    }
-  };
 
   const currentArticle = useMemo(() => {
     return articles[currentIndex] || null;
@@ -205,19 +179,7 @@ export const ArticleReader = ({
               </VStack>
             </HStack>
           </Box>
-          {isDoubleTap &&
-          (currentArticle.htmlUrl || currentArticle.origin?.htmlUrl) ? (
-            <WebView
-              source={{
-                uri:
-                  currentArticle.htmlUrl ||
-                  currentArticle.origin?.htmlUrl ||
-                  "",
-              }}
-            />
-          ) : (
-            ReaderMap[type](contentHTML)
-          )}
+          {ReaderMap[type](contentHTML)}
           <Box className={footer({})} />
         </ScrollView>
       </Box>
