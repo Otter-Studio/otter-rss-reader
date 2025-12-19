@@ -58,15 +58,15 @@ export const tagsStyles = {
   em: tw`italic`,
   u: tw`underline`,
 
-  a: tw`text-blue-600 font-medium underline`,
+  a: tw`text-blue-500 font-medium underline`,
 
   ul: tw`pl-5 mb-4`,
   ol: tw`pl-5 mb-4`,
   li: tw`mb-2 text-gray-700 leading-relaxed`,
 
-  blockquote: tw`border-l-4 border-blue-500 pl-4 py-2 italic text-gray-600 bg-gray-50 my-4`,
+  blockquote: tw`border-l-4 border-blue-500 pl-4 py-2 italic text-gray-500 bg-gray-50 my-4`,
 
-  code: tw`bg-gray-100 text-red-600 px-1.5 py-0.5 rounded text-sm font-mono`,
+  code: tw`bg-gray-100 text-red-500 px-1.5 py-0.5 rounded text-sm font-mono`,
   pre: tw`bg-gray-900 text-gray-100 p-4 rounded-lg mb-4 overflow-hidden`,
 
   hr: tw`my-6 border-gray-300`,
