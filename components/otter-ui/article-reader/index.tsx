@@ -1,58 +1,24 @@
-import React, { useMemo, useState, useEffect, useCallback } from "react";
+import React, { useMemo } from "react";
 import { Box } from "@/components/ui/box";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
-import { tva } from "@gluestack-ui/utils/nativewind-utils";
 import RenderHTML from "react-native-render-html";
 import { useWindowDimensions, ScrollView } from "react-native";
-import { useFocusEffect } from "expo-router";
-import { SettingsOperations } from "@/db/settings";
-import WebView from "react-native-webview";
-
-const container = tva({
-  base: "flex-1 bg-background-0 dark:bg-background-800 flex flex-col",
-});
-
-const header = tva({
-  base: "px-4 py-1 bg-background-50 flex justify-between items-center flex-row",
-});
-
-const headerTitle = tva({
-  base: "text-sm text-typography-500 flex-1 mr-2 line-clamp-1",
-});
-
-const headerTime = tva({
-  base: "text-sm text-typography-500 shrink-0",
-});
-
-const info = tva({
-  base: "px-4 py-4 border-b border-outline-50 bg-background-50 rounded-md mb-2",
-});
-
-const infoTitle = tva({
-  base: "text-xl font-bold text-typography-900",
-});
-
-const infoSubtitle = tva({
-  base: "text-sm text-typography-500 dark:text-typography-400 mt-2",
-});
-
-const contentContainer = tva({
-  base: "flex-1 bg-background-0 dark:bg-background-800",
-});
-
-const content = tva({
-  base: "flex-1 px-4 py-4",
-});
-
-const contentText = tva({
-  base: "text-base text-typography-800 dark:text-typography-100 leading-relaxed whitespace-pre-wrap",
-});
-
-const footer = tva({
-  base: "w-full h-24",
-});
+import {
+  container,
+  header,
+  headerTitle,
+  headerTime,
+  contentContainer,
+  content,
+  info,
+  infoTitle,
+  infoSubtitle,
+  footer,
+  contentText,
+  tagsStyles,
+} from "./style";
 
 export interface ArticleItem {
   id: string;
@@ -82,38 +48,6 @@ export const ArticleReader = ({
   articles,
   currentIndex,
 }: ArticleReaderProps) => {
-  const [isImmersiveMode, setIsImmersiveMode] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-
-  // 加载沉浸式阅读设置
-  const loadReadingMode = useCallback(async () => {
-    try {
-      const settings = await SettingsOperations.getSettings();
-      setIsImmersiveMode(settings.readingModeEnabled ?? true);
-      console.log(
-        "[ArticleReader] Loaded reading mode:",
-        settings.readingModeEnabled
-      );
-    } catch (error) {
-      console.error("加载沉浸式阅读设置失败:", error);
-    }
-  }, []);
-
-  // 在组件挂载时加载
-  useEffect(() => {
-    loadReadingMode();
-  }, [loadReadingMode]);
-
-  // 在组件获得焦点时重新加载设置（解决切换页面后返回的问题）
-  useFocusEffect(
-    useCallback(() => {
-      console.log("[ArticleReader] Component focused, reloading settings");
-      // 清除缓存以获取最新的数据库值
-      SettingsOperations.clearCache();
-      loadReadingMode();
-    }, [loadReadingMode])
-  );
-
   const currentArticle = useMemo(() => {
     return articles[currentIndex] || null;
   }, [articles, currentIndex]);
@@ -134,7 +68,7 @@ export const ArticleReader = ({
     return (
       <Box className={container()}>
         <VStack className="flex-1 justify-center items-center px-4">
-          <Text className="text-lg font-bold text-typography-600 dark:text-typography-300">
+          <Text className="text-lg font-bold text-typography-600">
             没有文章
           </Text>
         </VStack>
@@ -143,7 +77,7 @@ export const ArticleReader = ({
   }
 
   return (
-    <Box className={container({})} onTouchStart={handleDoubleTap}>
+    <Box className={container({})}>
       {/* 头部 */}
       <Box className={header({})}>
         <Text className={headerTitle({})}>{currentArticle.title}</Text>
@@ -167,12 +101,12 @@ export const ArticleReader = ({
                   <Text className={infoSubtitle({})}>
                     {currentArticle.origin?.title || "未知来源"}
                   </Text>
-                  <Text className="text-xs text-typography-500 dark:text-typography-400">
+                  <Text className="text-xs text-typography-500">
                     {publishedTime}
                   </Text>
                 </HStack>
                 {currentArticle.author && (
-                  <Text className="text-xs text-typography-500 dark:text-typography-400 mt-2">
+                  <Text className="text-xs text-typography-500">
                     @{currentArticle.author}
                   </Text>
                 )}
@@ -211,6 +145,7 @@ const ReaderMap = {
             enableExperimentalPercentWidth: true,
           },
         }}
+        tagsStyles={tagsStyles}
       />
     );
   },

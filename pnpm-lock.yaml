@@ -152,6 +152,9 @@ importers:
       tsyringe:
         specifier: ^4.8.0
         version: 4.10.0
+      twrnc:
+        specifier: ^4.14.0
+        version: 4.14.0(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(yaml@2.8.1)
       typeorm:
         specifier: ^0.3.28
         version: 0.3.28
@@ -5478,6 +5481,11 @@ packages:
 
   tunnel-agent@0.6.0:
     resolution: {integrity: sha512-McnNiV1l8RYeY8tBgEpuodCC1mLUdbSN+CYBL7kJsJNInOP8UjDDEwdk6Mw60vdLLrr5NHKZhMAOSrR2NZuQ+w==}
+
+  twrnc@4.14.0:
+    resolution: {integrity: sha512-eUjRTgyhX0ChBbahrsdhREEHpzibKo3qxZwTn850qzOuZSEeIdnhGkFCXkmIsZaR+SR7u8hTLf8lk5avzhqtKg==}
+    peerDependencies:
+      react-native: '>=0.62.2'
 
   type-detect@4.0.8:
     resolution: {integrity: sha512-0fr/mIH1dlO+x7TlcMy+bIDqKPsw/70tVyeHW787goQjhmqaZe10uwLujubK9q9Lg6Fiho1KUKDYz0Z7k7g5/g==}
@@ -12436,6 +12444,14 @@ snapshots:
   tunnel-agent@0.6.0:
     dependencies:
       safe-buffer: 5.2.1
+
+  twrnc@4.14.0(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(yaml@2.8.1):
+    dependencies:
+      react-native: 0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0)
+      tailwindcss: 3.4.18(yaml@2.8.1)
+    transitivePeerDependencies:
+      - tsx
+      - yaml
 
   type-detect@4.0.8: {}
 
