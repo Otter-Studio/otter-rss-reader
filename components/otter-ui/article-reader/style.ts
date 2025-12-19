@@ -3,7 +3,7 @@ import { tva } from "@gluestack-ui/utils/nativewind-utils";
 import tw from 'twrnc';
 
 export const container = tva({
-  base: "flex-1 bg-background-0 dark:bg-background-800 flex flex-col",
+  base: "flex-1 bg-background-0 flex flex-col",
 });
 
 export const header = tva({
@@ -27,11 +27,11 @@ export const infoTitle = tva({
 });
 
 export const infoSubtitle = tva({
-  base: "text-sm text-typography-500 dark:text-typography-400 mt-2",
+  base: "text-sm text-typography-500 mt-2",
 });
 
 export const contentContainer = tva({
-  base: "flex-1 bg-background-0 dark:bg-background-800",
+  base: "flex-1 bg-background-0",
 });
 
 export const content = tva({
@@ -39,7 +39,7 @@ export const content = tva({
 });
 
 export const contentText = tva({
-  base: "text-base text-typography-800 dark:text-typography-100 leading-relaxed whitespace-pre-wrap",
+  base: "text-base text-typography-800 leading-relaxed whitespace-pre-wrap",
 });
 
 export const footer = tva({
