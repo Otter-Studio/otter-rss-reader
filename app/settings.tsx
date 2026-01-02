@@ -1,35 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Box } from "@/components/ui/box";
 import { Text } from "@/components/ui/text";
-import { VStack } from "@/components/ui/vstack";
 import { ScrollView } from "react-native";
-import { Input, InputField } from "@/components/ui/input";
-import { Button, ButtonText } from "@/components/ui/button";
-import {
-  FormControl,
-  FormControlLabel,
-  FormControlLabelText,
-  FormControlHelper,
-  FormControlHelperText,
-} from "@/components/ui/form-control";
-import {
-  Select,
-  SelectTrigger,
-  SelectInput,
-  SelectPortal,
-  SelectBackdrop,
-  SelectContent,
-  SelectDragIndicatorWrapper,
-  SelectDragIndicator,
-  SelectItem,
-} from "@/components/ui/select";
 import { SettingsOperations } from "@/db/settings";
 import { Toast, useToast } from "@/components/ui/toast";
 import { useThemeContext } from "@/components/ThemeContext";
-import { HStack } from "@/components/ui/hstack";
-import { Switch } from "@/components/ui/switch";
+import { Settings } from "@/components/otter-ui/settings/components/settings";
+import type { SettingsGroup } from "@/components/otter-ui/settings/types";
 
 export default function SettingsPage() {
+  // 状态管理
   const [baseUrl, setBaseUrl] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -223,6 +203,203 @@ export default function SettingsPage() {
     }
   };
 
+  // Settings 配置
+  const settingsConfig: SettingsGroup[] = useMemo(
+    () => [
+      {
+        id: "display",
+        title: "显示设置",
+        items: [
+          {
+            type: "select",
+            id: "theme",
+            label: "主题模式",
+            description: "选择应用的显示主题",
+            value: theme,
+            options: [
+              { label: "浅色", value: "light" },
+              { label: "深色", value: "dark" },
+              { label: "跟随系统", value: "system" },
+            ],
+            onChange: handleThemeChange,
+            disabled: isSaving,
+          },
+          {
+            type: "switch",
+            id: "reading-mode",
+            label: "阅读模式",
+            description: "开启后使用更适合阅读的排版和样式",
+            value: readingModeEnabled,
+            onChange: setReadingModeEnabled,
+            disabled: isSaving,
+          },
+        ],
+      },
+      {
+        id: "server",
+        title: "服务器配置",
+        items: [
+          {
+            type: "input",
+            id: "base-url",
+            label: "服务器地址 (URL)",
+            description: "输入 RSS 服务器的地址",
+            value: baseUrl,
+            placeholder: "例如: https://api.example.com/api/greader.php",
+            inputType: "url",
+            onChange: setBaseUrl,
+            disabled: isSaving,
+          },
+          {
+            type: "input",
+            id: "username",
+            label: "用户名",
+            description: "服务器登录用户名",
+            value: username,
+            placeholder: "输入用户名",
+            inputType: "text",
+            onChange: setUsername,
+            disabled: isSaving,
+          },
+          {
+            type: "input",
+            id: "password",
+            label: "密码",
+            description: "服务器登录密码",
+            value: password,
+            placeholder: "输入密码",
+            inputType: "password",
+            onChange: setPassword,
+            disabled: isSaving,
+          },
+          {
+            type: "button",
+            id: "save-button",
+            buttonText: isSaving ? "保存中..." : "保存设置",
+            variant: "primary",
+            onPress: handleSave,
+            disabled: isSaving,
+          },
+        ],
+      },
+      {
+        id: "sync",
+        title: "同步设置",
+        items: [
+          {
+            type: "number",
+            id: "refresh-interval",
+            label: "刷新间隔（分钟）",
+            description: "自动刷新 RSS 源的时间间隔",
+            value: refreshInterval,
+            placeholder: "30",
+            min: 5,
+            max: 1440,
+            onChange: setRefreshInterval,
+            disabled: isSaving,
+          },
+          {
+            type: "number",
+            id: "articles-per-page",
+            label: "每页文章数",
+            description: "每次加载显示的文章数量",
+            value: articlesPerPage,
+            placeholder: "20",
+            min: 10,
+            max: 100,
+            onChange: setArticlesPerPage,
+            disabled: isSaving,
+          },
+        ],
+      },
+      {
+        id: "notifications",
+        title: "通知设置",
+        items: [
+          {
+            type: "switch",
+            id: "notifications-enabled",
+            label: "启用通知",
+            description: "接收新文章通知",
+            value: notificationsEnabled,
+            onChange: setNotificationsEnabled,
+            disabled: isSaving,
+          },
+          {
+            type: "switch",
+            id: "sound-notification",
+            label: "声音通知",
+            description: "新通知时播放提示音",
+            value: soundNotificationEnabled,
+            onChange: setSoundNotificationEnabled,
+            disabled: isSaving || !notificationsEnabled,
+          },
+          {
+            type: "switch",
+            id: "vibration",
+            label: "振动",
+            description: "新通知时振动提醒",
+            value: vibrationEnabled,
+            onChange: setVibrationEnabled,
+            disabled: isSaving || !notificationsEnabled,
+          },
+        ],
+      },
+      {
+        id: "storage",
+        title: "存储设置",
+        items: [
+          {
+            type: "switch",
+            id: "offline-mode",
+            label: "离线模式",
+            description: "缓存文章以供离线阅读",
+            value: offlineModeEnabled,
+            onChange: setOfflineModeEnabled,
+            disabled: isSaving,
+          },
+          {
+            type: "number",
+            id: "cache-limit",
+            label: "缓存文章数量",
+            description: "最多缓存的文章数量",
+            value: cacheItemLimit,
+            placeholder: "1000",
+            min: 100,
+            max: 10000,
+            onChange: setCacheItemLimit,
+            disabled: isSaving || !offlineModeEnabled,
+          },
+          {
+            type: "switch",
+            id: "compression",
+            label: "压缩存储",
+            description: "压缩缓存数据以节省空间",
+            value: compressionEnabled,
+            onChange: setCompressionEnabled,
+            disabled: isSaving || !offlineModeEnabled,
+          },
+        ],
+      },
+    ],
+    [
+      theme,
+      readingModeEnabled,
+      baseUrl,
+      username,
+      password,
+      refreshInterval,
+      articlesPerPage,
+      notificationsEnabled,
+      soundNotificationEnabled,
+      vibrationEnabled,
+      offlineModeEnabled,
+      cacheItemLimit,
+      compressionEnabled,
+      isSaving,
+    ]
+  );
+
   if (isLoading) {
     return (
       <Box className="flex-1 bg-background-50 justify-center items-center">
@@ -234,145 +411,8 @@ export default function SettingsPage() {
   return (
     <Box className="flex-1 bg-background-50">
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
-        <VStack className="space-y-8">
-          <Text className="text-2xl font-bold mb-2">设置</Text>
-
-          {/* 主题设置区域 */}
-          <VStack className="space-y-4 bg-background-0 rounded-lg p-4 mb-4 shadow-sm">
-            <Text className="text-lg font-semibold text-typography-800">
-              显示设置
-            </Text>
-
-            {/* 主题选择 */}
-            <FormControl>
-              <FormControlLabel>
-                <FormControlLabelText>主题模式</FormControlLabelText>
-              </FormControlLabel>
-              <Select
-                selectedValue={theme}
-                onValueChange={handleThemeChange}
-                isDisabled={isSaving}
-              >
-                <SelectTrigger>
-                  <SelectInput placeholder="选择主题模式" />
-                </SelectTrigger>
-                <SelectPortal>
-                  <SelectBackdrop />
-                  <SelectContent>
-                    <SelectDragIndicatorWrapper>
-                      <SelectDragIndicator />
-                    </SelectDragIndicatorWrapper>
-                    <SelectItem label="浅色" value="light" />
-                    <SelectItem label="深色" value="dark" />
-                    <SelectItem label="跟随系统" value="system" />
-                  </SelectContent>
-                </SelectPortal>
-              </Select>
-              <FormControlHelper>
-                <FormControlHelperText>
-                  选择应用的显示主题
-                </FormControlHelperText>
-              </FormControlHelper>
-            </FormControl>
-
-            {/* 阅读模式 */}
-            <FormControl>
-              <FormControlLabel>
-                <FormControlLabelText>阅读模式</FormControlLabelText>
-              </FormControlLabel>
-              <HStack className="items-center justify-between">
-                <Text className="text-typography-600">启用沉浸式阅读</Text>
-                <Switch
-                  value={readingModeEnabled}
-                  onValueChange={setReadingModeEnabled}
-                  isDisabled={isSaving}
-                />
-              </HStack>
-              <FormControlHelper>
-                <FormControlHelperText>
-                  开启后使用更适合阅读的排版和样式
-                </FormControlHelperText>
-              </FormControlHelper>
-            </FormControl>
-          </VStack>
-
-          {/* 服务器设置区域 */}
-          <VStack className="space-y-4 bg-background-0 rounded-lg p-4 mb-4 shadow-sm">
-            <Text className="text-lg font-semibold text-typography-800">
-              服务器配置
-            </Text>
-
-            {/* 服务器地址 */}
-            <FormControl>
-              <FormControlLabel>
-                <FormControlLabelText>服务器地址 (URL)</FormControlLabelText>
-              </FormControlLabel>
-              <Input>
-                <InputField
-                  placeholder="例如: https://api.example.com/api/greader.php"
-                  value={baseUrl}
-                  onChangeText={setBaseUrl}
-                  editable={!isSaving}
-                  type="text"
-                />
-              </Input>
-              <FormControlHelper>
-                <FormControlHelperText>
-                  输入 RSS 服务器的地址
-                </FormControlHelperText>
-              </FormControlHelper>
-            </FormControl>
-
-            {/* 用户名 */}
-            <FormControl>
-              <FormControlLabel>
-                <FormControlLabelText>用户名</FormControlLabelText>
-              </FormControlLabel>
-              <Input>
-                <InputField
-                  placeholder="输入用户名"
-                  value={username}
-                  onChangeText={setUsername}
-                  editable={!isSaving}
-                  type="text"
-                />
-              </Input>
-              <FormControlHelper>
-                <FormControlHelperText>服务器登录用户名</FormControlHelperText>
-              </FormControlHelper>
-            </FormControl>
-
-            {/* 密码 */}
-            <FormControl>
-              <FormControlLabel>
-                <FormControlLabelText>密码</FormControlLabelText>
-              </FormControlLabel>
-              <Input>
-                <InputField
-                  placeholder="输入密码"
-                  value={password}
-                  onChangeText={setPassword}
-                  editable={!isSaving}
-                  type="password"
-                />
-              </Input>
-              <FormControlHelper>
-                <FormControlHelperText>服务器登录密码</FormControlHelperText>
-              </FormControlHelper>
-            </FormControl>
-
-            {/* 按钮区域 */}
-            <VStack className="space-y-2 pt-4">
-              <Button
-                onPress={handleSave}
-                disabled={isSaving}
-                className="bg-primary-600 active:bg-primary-700"
-              >
-                <ButtonText>{isSaving ? "保存中..." : "保存设置"}</ButtonText>
-              </Button>
-            </VStack>
-          </VStack>
-        </VStack>
+        <Text className="text-2xl font-bold mb-4">设置</Text>
+        <Settings groups={settingsConfig} />
       </ScrollView>
     </Box>
   );
