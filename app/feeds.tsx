@@ -1,15 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter, Link, useLocalSearchParams } from "expo-router";
 import { Box } from "@/components/ui/box";
 import { Text } from "@/components/ui/text";
 import { FlatList } from "@/components/ui/flat-list";
 import { SectionList } from "@/components/ui/section-list";
 import { Pressable } from "@/components/ui/pressable";
-import { Switch } from "@/components/ui/switch";
 import { Icon } from "@/components/ui/icon";
 import { useCachedFeeds } from "@/hooks/useCache/useCachedFeeds";
 import { useCachedCategories } from "@/hooks/useCache/useCachedCategories";
 import { LoadingBar } from "@/components/otter-ui/loading-bar";
+import { SettingsOperations } from "@/db/settings";
 import type { IFeed } from "libseymour";
 import { tva } from "@gluestack-ui/utils/nativewind-utils";
 import { ChevronRight } from "lucide-react-native";
@@ -143,7 +143,22 @@ export default function FeedsPage() {
   const { categoryId, categoryName } = useLocalSearchParams();
   const { feeds, loading, error, refresh } = useCachedFeeds();
   const { categories } = useCachedCategories();
-  const [isGrouped, setIsGrouped] = useState(false);
+  const [isGrouped, setIsGrouped] = useState(true);
+
+  // 加载分组视图偏好
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const settings = await SettingsOperations.getSettings();
+        setIsGrouped(settings?.feedsGroupedViewEnabled ?? true);
+      } catch (error) {
+        console.error("加载设置失败:", error);
+        setIsGrouped(true); // 默认为分组视图
+      }
+    };
+
+    loadSettings();
+  }, []);
 
   // 如果有 categoryId，过滤订阅源
   const filteredFeeds = categoryId
@@ -268,16 +283,6 @@ export default function FeedsPage() {
             : "还没有任何订阅"}
         </Text>
       </Box>
-
-      {/* 切换开关 */}
-      {filteredFeeds.length > 0 && (
-        <Box className={switchContainer({})}>
-          <Text className={switchLabel({})}>
-            {isGrouped ? "按分类分组" : "列表视图"}
-          </Text>
-          <Switch value={isGrouped} onValueChange={setIsGrouped} />
-        </Box>
-      )}
 
       {/* 内容 */}
       {filteredFeeds.length === 0 ? (

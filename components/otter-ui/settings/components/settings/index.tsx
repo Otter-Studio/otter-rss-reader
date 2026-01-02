@@ -11,11 +11,11 @@ interface SettingsProps {
 
 export const Settings: React.FC<SettingsProps> = ({ groups }) => {
   return (
-    <VStack className="space-y-8">
+    <VStack>
       {groups.map((group) => (
         <VStack
           key={group.id}
-          className="space-y-4 bg-background-0 rounded-lg p-4 shadow-sm"
+          className="mb-4 space-y-4 bg-background-0 rounded-lg p-4 shadow-sm"
         >
           {group.title && group.title.trim() !== "" && (
             <Text className="text-lg font-semibold text-typography-800">
@@ -27,9 +27,11 @@ export const Settings: React.FC<SettingsProps> = ({ groups }) => {
               {group.description}
             </Text>
           )}
-          <VStack className="space-y-4">
+          <VStack>
             {group.items.map((item) => (
-              <SettingsItem key={item.id} item={item} />
+              <Box key={item.id} className="mb-2">
+                <SettingsItem item={item} />
+              </Box>
             ))}
           </VStack>
         </VStack>

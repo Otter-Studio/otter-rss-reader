@@ -21,43 +21,51 @@ import {
   FormControlHelperText,
 } from "@/components/ui/form-control";
 
-// ActionSheet 输入组件
-interface InputActionSheetProps {
+// ActionSheet 数字输入组件
+interface NumberInputActionSheetProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
   description?: string;
-  value: string;
+  value: number;
   placeholder?: string;
-  inputType?: "text" | "password";
-  onChange: (value: string) => void;
+  min?: number;
+  max?: number;
+  onChange: (value: number) => void;
 }
 
-export const InputActionSheet: React.FC<InputActionSheetProps> = ({
+export const NumberInputActionSheet: React.FC<NumberInputActionSheetProps> = ({
   isOpen,
   onClose,
   title,
   description,
   value,
   placeholder,
-  inputType = "text",
+  min,
+  max,
   onChange,
 }) => {
-  const [tempValue, setTempValue] = useState(value);
+  const [tempValue, setTempValue] = useState(String(value));
 
   React.useEffect(() => {
     if (isOpen) {
-      setTempValue(value);
+      setTempValue(String(value));
     }
   }, [isOpen, value]);
 
   const handleConfirm = () => {
-    onChange(tempValue);
+    const num = parseInt(tempValue, 10);
+    if (!isNaN(num)) {
+      let finalValue = num;
+      if (min !== undefined && num < min) finalValue = min;
+      if (max !== undefined && num > max) finalValue = max;
+      onChange(finalValue);
+    }
     onClose();
   };
 
   const handleCancel = () => {
-    setTempValue(value);
+    setTempValue(String(value));
     onClose();
   };
 
@@ -86,10 +94,21 @@ export const InputActionSheet: React.FC<InputActionSheetProps> = ({
                 placeholder={placeholder}
                 value={tempValue}
                 onChangeText={setTempValue}
-                type={inputType}
+                keyboardType="numeric"
                 autoFocus
               />
             </Input>
+            {(min !== undefined || max !== undefined) && (
+              <FormControlHelper className="mt-2">
+                <FormControlHelperText>
+                  {min !== undefined && max !== undefined
+                    ? `范围：${min} - ${max}`
+                    : min !== undefined
+                    ? `最小值：${min}`
+                    : `最大值：${max}`}
+                </FormControlHelperText>
+              </FormControlHelper>
+            )}
           </FormControl>
 
           <HStack className="space-x-3 mt-4">
@@ -106,29 +125,31 @@ export const InputActionSheet: React.FC<InputActionSheetProps> = ({
   );
 };
 
-// 移动端输入项组件
-interface SettingsInputItemProps {
+// 移动端数字输入项组件
+interface SettingsNumberItemProps {
   label: string;
   description?: string;
-  value: string;
+  value: number;
   placeholder?: string;
-  inputType?: "text" | "password";
-  onChange: (value: string) => void;
+  min?: number;
+  max?: number;
+  onChange: (value: number) => void;
   disabled?: boolean;
 }
 
-export const SettingsInputItem: React.FC<SettingsInputItemProps> = ({
+export const SettingsNumberItem: React.FC<SettingsNumberItemProps> = ({
   label,
   description,
   value,
   placeholder,
-  inputType = "text",
+  min,
+  max,
   onChange,
   disabled = false,
 }) => {
   const [showSheet, setShowSheet] = useState(false);
-  const displayValue = value || placeholder || "未设置";
-  const isPlaceholder = !value;
+  const displayValue = value ? String(value) : placeholder || "未设置";
+  const isPlaceholder = !value && value !== 0;
 
   return (
     <>
@@ -154,7 +175,7 @@ export const SettingsInputItem: React.FC<SettingsInputItemProps> = ({
                 isPlaceholder ? "text-typography-400" : "text-typography-700"
               }`}
             >
-              {inputType === "password" && value ? "••••••" : displayValue}
+              {displayValue}
             </Text>
             <Icon
               as={ChevronRightIcon}
@@ -165,14 +186,15 @@ export const SettingsInputItem: React.FC<SettingsInputItemProps> = ({
         </HStack>
       </TouchableOpacity>
 
-      <InputActionSheet
+      <NumberInputActionSheet
         isOpen={showSheet}
         onClose={() => setShowSheet(false)}
         title={label}
         description={description}
         value={value}
         placeholder={placeholder}
-        inputType={inputType}
+        min={min}
+        max={max}
         onChange={onChange}
       />
     </>

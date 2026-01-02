@@ -65,6 +65,9 @@ export interface ISettings extends IBaseEntity {
   /** 是否启用深色阅读模式 */
   readingModeEnabled: boolean;
 
+  /** 订阅源分组视图 */
+  feedsGroupedViewEnabled: boolean;
+
   /** 自定义背景颜色 */
   backgroundColor?: string;
 

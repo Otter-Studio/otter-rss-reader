@@ -81,6 +81,17 @@ export interface CustomSettingItem {
   render: () => React.ReactNode;
 }
 
+// 导航项（跳转到其他页面）
+export interface NavigationSettingItem {
+  type: "navigation";
+  id: string;
+  label: string;
+  description?: string;
+  disabled?: boolean;
+  value?: string; // 右侧显示的值
+  onPress: () => void;
+}
+
 // 联合类型
 export type SettingItem =
   | InputSettingItem
@@ -90,7 +101,8 @@ export type SettingItem =
   | ButtonSettingItem
   | GroupHeaderItem
   | DividerItem
-  | CustomSettingItem;
+  | CustomSettingItem
+  | NavigationSettingItem;
 
 // 设置组
 export interface SettingsGroup {
