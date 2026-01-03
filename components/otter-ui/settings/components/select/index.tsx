@@ -55,7 +55,7 @@ export const SettingsSwitch: React.FC<SettingsSwitchProps> = ({
   return (
     <FormControl>
       <FormControlLabel>
-        <FormControlLabelText>阅读模式</FormControlLabelText>
+        <FormControlLabelText>{label}</FormControlLabelText>
       </FormControlLabel>
       <HStack className={settingsSwitchContainer({ type })}>
         <Text className={settingsSwitchLabel({ type })}>{label}</Text>
