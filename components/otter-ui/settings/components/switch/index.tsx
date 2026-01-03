@@ -8,7 +8,6 @@ import {
   FormControlHelperText,
 } from "@/components/ui/form-control";
 import { HStack } from "@/components/ui/hstack";
-import { Text } from "@/components/ui/text";
 import { Switch } from "@/components/ui/switch";
 
 export interface SettingsSwitchProps {
