@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { TouchableOpacity } from "react-native";
+import { tva } from "@gluestack-ui/utils/nativewind-utils";
 import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
 import { Text } from "@/components/ui/text";
@@ -21,6 +22,77 @@ import {
   FormControlHelper,
   FormControlHelperText,
 } from "@/components/ui/form-control";
+
+// 样式定义
+const selectActionSheetContent = tva({
+  base: "pb-6",
+});
+
+const selectActionSheetVStack = tva({
+  base: "w-full px-4 py-4 space-y-4",
+});
+
+const selectActionSheetTitle = tva({
+  base: "text-lg font-semibold",
+});
+
+const selectActionSheetOptionsContainer = tva({
+  base: "mt-3 space-y-2",
+});
+
+const selectActionSheetOptionRow = tva({
+  base: "items-center justify-between w-full",
+});
+
+const selectActionSheetCheckmark = tva({
+  base: "text-primary-600",
+});
+
+const selectActionSheetButtonRow = tva({
+  base: "space-x-3 mt-4",
+});
+
+const selectActionSheetCancelButton = tva({
+  base: "flex-1",
+});
+
+const selectActionSheetConfirmButton = tva({
+  base: "flex-1 bg-primary-600",
+});
+
+const selectItemContainer = tva({
+  base: "items-center justify-between py-3 px-4 bg-background-0 rounded-lg",
+});
+
+const selectItemContent = tva({
+  base: "flex-1 mr-4",
+});
+
+const selectItemLabel = tva({
+  base: "text-base font-medium text-typography-900",
+});
+
+const selectItemDescription = tva({
+  base: "text-sm text-typography-500 mt-0.5",
+});
+
+const selectItemValueRow = tva({
+  base: "items-center space-x-2",
+});
+
+const selectItemValue = tva({
+  base: "text-sm",
+  variants: {
+    placeholder: {
+      true: "text-typography-400",
+      false: "text-typography-700",
+    },
+  },
+});
+
+const selectItemIcon = tva({
+  base: "text-typography-400",
+});
 
 // ActionSheet 选择组件
 interface SelectActionSheetProps {
@@ -63,15 +135,15 @@ export const SelectActionSheet: React.FC<SelectActionSheetProps> = ({
   return (
     <Actionsheet isOpen={isOpen} onClose={handleCancel}>
       <ActionsheetBackdrop />
-      <ActionsheetContent className="pb-6">
+      <ActionsheetContent className={selectActionSheetContent()}>
         <ActionsheetDragIndicatorWrapper>
           <ActionsheetDragIndicator />
         </ActionsheetDragIndicatorWrapper>
 
-        <VStack className="w-full px-4 py-4 space-y-4">
+        <VStack className={selectActionSheetVStack()}>
           <FormControl>
             <FormControlLabel>
-              <FormControlLabelText className="text-lg font-semibold">
+              <FormControlLabelText className={selectActionSheetTitle()}>
                 {title}
               </FormControlLabelText>
             </FormControlLabel>
@@ -80,16 +152,16 @@ export const SelectActionSheet: React.FC<SelectActionSheetProps> = ({
                 <FormControlHelperText>{description}</FormControlHelperText>
               </FormControlHelper>
             )}
-            <VStack className="mt-3 space-y-2">
+            <VStack className={selectActionSheetOptionsContainer()}>
               {options.map((option) => (
                 <ActionsheetItem
                   key={option.value}
                   onPress={() => setTempValue(option.value)}
                 >
-                  <HStack className="items-center justify-between w-full">
+                  <HStack className={selectActionSheetOptionRow()}>
                     <ActionsheetItemText>{option.label}</ActionsheetItemText>
                     {tempValue === option.value && (
-                      <Text className="text-primary-600">✓</Text>
+                      <Text className={selectActionSheetCheckmark()}>✓</Text>
                     )}
                   </HStack>
                 </ActionsheetItem>
@@ -97,11 +169,11 @@ export const SelectActionSheet: React.FC<SelectActionSheetProps> = ({
             </VStack>
           </FormControl>
 
-          <HStack className="space-x-3 mt-4">
-            <Button onPress={handleCancel} variant="outline" className="flex-1">
+          <HStack className={selectActionSheetButtonRow()}>
+            <Button onPress={handleCancel} variant="outline" className={selectActionSheetCancelButton()}>
               <ButtonText>取消</ButtonText>
             </Button>
-            <Button onPress={handleConfirm} className="flex-1 bg-primary-600">
+            <Button onPress={handleConfirm} className={selectActionSheetConfirmButton()}>
               <ButtonText>确定</ButtonText>
             </Button>
           </HStack>
@@ -144,28 +216,28 @@ export const SettingsSelectItem: React.FC<SettingsSelectItemProps> = ({
         disabled={disabled}
         activeOpacity={0.7}
       >
-        <HStack className="items-center justify-between py-3 px-4 bg-background-0 rounded-lg">
-          <VStack className="flex-1 mr-4">
-            <Text className="text-base font-medium text-typography-900">
+        <HStack className={selectItemContainer()}>
+          <VStack className={selectItemContent()}>
+            <Text className={selectItemLabel()}>
               {label}
             </Text>
             {description && description.trim() !== "" && (
-              <Text className="text-sm text-typography-500 mt-0.5">
+              <Text className={selectItemDescription()}>
                 {description}
               </Text>
             )}
           </VStack>
-          <HStack className="items-center space-x-2">
+          <HStack className={selectItemValueRow()}>
             <Text
-              className={`text-sm ${
-                isPlaceholder ? "text-typography-400" : "text-typography-700"
-              }`}
+              className={selectItemValue({
+                placeholder: isPlaceholder,
+              })}
             >
               {displayValue}
             </Text>
             <Icon
               as={ChevronRightIcon}
-              className="text-typography-400"
+              className={selectItemIcon()}
               size="sm"
             />
           </HStack>
