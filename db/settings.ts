@@ -29,6 +29,7 @@ const DEFAULT_SETTINGS: ISettings = {
   cacheItemLimit: 1000,
   compressionEnabled: true,
   readingModeEnabled: true,
+  feedsGroupedViewEnabled: true,
   createdAt: new Date(),
   updatedAt: new Date(),
 };

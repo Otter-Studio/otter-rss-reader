@@ -1,93 +1,182 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Box } from "@/components/ui/box";
 import { Text } from "@/components/ui/text";
-import { VStack } from "@/components/ui/vstack";
 import { ScrollView } from "react-native";
-import { Input, InputField } from "@/components/ui/input";
-import { Button, ButtonText } from "@/components/ui/button";
-import {
-  FormControl,
-  FormControlLabel,
-  FormControlLabelText,
-  FormControlHelper,
-  FormControlHelperText,
-} from "@/components/ui/form-control";
-import {
-  Select,
-  SelectTrigger,
-  SelectInput,
-  SelectPortal,
-  SelectBackdrop,
-  SelectContent,
-  SelectDragIndicatorWrapper,
-  SelectDragIndicator,
-  SelectItem,
-} from "@/components/ui/select";
 import { SettingsOperations } from "@/db/settings";
 import { Toast, useToast } from "@/components/ui/toast";
 import { useThemeContext } from "@/components/ThemeContext";
-import { HStack } from "@/components/ui/hstack";
-import { Switch } from "@/components/ui/switch";
+import { useRouter } from "expo-router";
+import { Settings } from "@/components/otter-ui/settings/components/settings";
+import { useSettingsConfig } from "@/components/otter-ui/settings/useSettingsConfig";
+import type { SettingsGroupConfig } from "@/components/otter-ui/settings/useSettingsConfig";
 
 export default function SettingsPage() {
-  const [baseUrl, setBaseUrl] = useState("");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [theme, setTheme] = useState<"light" | "dark" | "system">("light");
-  const [refreshInterval, setRefreshInterval] = useState<number>(30);
-  const [articlesPerPage, setArticlesPerPage] = useState<number>(20);
-  const [notificationsEnabled, setNotificationsEnabled] =
-    useState<boolean>(true);
-  const [soundNotificationEnabled, setSoundNotificationEnabled] =
-    useState<boolean>(true);
-  const [vibrationEnabled, setVibrationEnabled] = useState<boolean>(true);
-  const [offlineModeEnabled, setOfflineModeEnabled] = useState<boolean>(true);
-  const [cacheItemLimit, setCacheItemLimit] = useState<number>(1000);
-  const [compressionEnabled, setCompressionEnabled] = useState<boolean>(true);
-  const [readingModeEnabled, setReadingModeEnabled] = useState<boolean>(true);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
   const toast = useToast();
   const { setThemeSetting } = useThemeContext();
+  const router = useRouter();
+  // 设置配置
+  const settingsConfig: SettingsGroupConfig[] = [
+    {
+      id: "server",
+      title: "服务器",
+      fields: [
+        {
+          id: "server-config",
+          type: "navigation",
+          label: "服务器配置",
+          description: "配置 RSS 服务器地址和登录信息",
+          route: "/settings/server-config",
+        },
+      ],
+    },
+    {
+      id: "display",
+      title: "显示",
+      fields: [
+        {
+          id: "theme",
+          type: "select",
+          label: "主题模式",
+          description: "选择应用的显示主题",
+          defaultValue: "light",
+          options: [
+            { label: "浅色", value: "light" },
+            { label: "深色", value: "dark" },
+            { label: "跟随系统", value: "system" },
+          ],
+        },
+        {
+          id: "readingModeEnabled",
+          type: "switch",
+          label: "阅读模式",
+          description: "沉浸式阅读体验",
+          defaultValue: true,
+        },
+        {
+          id: "feedsGroupedViewEnabled",
+          type: "switch",
+          label: "订阅源分组视图",
+          description: "按分类分组显示订阅源",
+          defaultValue: true,
+        },
+      ],
+    },
+    {
+      id: "sync",
+      title: "同步",
+      fields: [
+        {
+          id: "refreshInterval",
+          type: "number",
+          label: "刷新间隔",
+          description: "自动刷新 RSS 源的时间间隔（分钟）",
+          placeholder: "30",
+          defaultValue: 30,
+          min: 5,
+          max: 1440,
+        },
+        {
+          id: "articlesPerPage",
+          type: "number",
+          label: "每页文章数",
+          description: "每次加载显示的文章数量",
+          placeholder: "20",
+          defaultValue: 20,
+          min: 10,
+          max: 100,
+        },
+      ],
+    },
+    {
+      id: "notifications",
+      title: "通知",
+      fields: [
+        {
+          id: "notificationsEnabled",
+          type: "switch",
+          label: "启用通知",
+          description: "接收新文章通知",
+          defaultValue: true,
+        },
+        {
+          id: "soundNotificationEnabled",
+          type: "switch",
+          label: "声音",
+          description: "新通知时播放提示音",
+          defaultValue: true,
+          disabled: (values) => !values.notificationsEnabled,
+        },
+        {
+          id: "vibrationEnabled",
+          type: "switch",
+          label: "振动",
+          description: "新通知时振动提醒",
+          defaultValue: true,
+          disabled: (values) => !values.notificationsEnabled,
+        },
+      ],
+    },
+    {
+      id: "storage",
+      title: "存储",
+      fields: [
+        {
+          id: "offlineModeEnabled",
+          type: "switch",
+          label: "离线模式",
+          description: "缓存文章以供离线阅读",
+          defaultValue: true,
+        },
+        {
+          id: "cacheItemLimit",
+          type: "number",
+          label: "缓存文章数量",
+          description: "最多缓存的文章数量",
+          placeholder: "1000",
+          defaultValue: 1000,
+          min: 100,
+          max: 10000,
+          disabled: (values) => !values.offlineModeEnabled,
+        },
+        {
+          id: "compressionEnabled",
+          type: "switch",
+          label: "压缩存储",
+          description: "压缩缓存数据节省空间",
+          defaultValue: true,
+          disabled: (values) => !values.offlineModeEnabled,
+        },
+      ],
+    },
+  ];
 
-  // 自动加载设置
-  useEffect(() => {
-    const loadSettings = async () => {
+  const { settingsGroups, isLoading } = useSettingsConfig({
+    groups: settingsConfig,
+    onLoad: async () => {
       try {
-        setIsLoading(true);
         let userInfo = await SettingsOperations.getUserInfo();
-
-        // 如果设置不存在，先初始化
         if (!userInfo) {
           console.log("设置不存在，初始化默认设置");
           await SettingsOperations.initializeSettings();
           userInfo = await SettingsOperations.getUserInfo();
         }
 
-        if (userInfo) {
-          setBaseUrl(userInfo.baseUrl || "");
-          setUsername(userInfo.username || "");
-          setPassword(userInfo.password || "");
-        }
-
         const settings = await SettingsOperations.getSettings();
-        if (settings) {
-          setTheme((settings.theme as "light" | "dark" | "system") ?? "light");
-          setRefreshInterval(settings.refreshInterval ?? 30);
-          setArticlesPerPage(settings.articlesPerPage ?? 20);
-          setNotificationsEnabled(settings.notificationsEnabled ?? true);
-          setSoundNotificationEnabled(
-            settings.soundNotificationEnabled ?? true
-          );
-          setVibrationEnabled(settings.vibrationEnabled ?? true);
-          setOfflineModeEnabled(settings.offlineModeEnabled ?? true);
-          setCacheItemLimit(settings.cacheItemLimit ?? 1000);
-          setCompressionEnabled(settings.compressionEnabled ?? true);
-          setReadingModeEnabled(settings.readingModeEnabled ?? true);
-        }
+        return {
+          theme: settings?.theme || "light",
+          readingModeEnabled: settings?.readingModeEnabled ?? true,
+          feedsGroupedViewEnabled: settings?.feedsGroupedViewEnabled ?? true,
+          refreshInterval: settings?.refreshInterval ?? 30,
+          articlesPerPage: settings?.articlesPerPage ?? 20,
+          notificationsEnabled: settings?.notificationsEnabled ?? true,
+          soundNotificationEnabled: settings?.soundNotificationEnabled ?? true,
+          vibrationEnabled: settings?.vibrationEnabled ?? true,
+          offlineModeEnabled: settings?.offlineModeEnabled ?? true,
+          cacheItemLimit: settings?.cacheItemLimit ?? 1000,
+          compressionEnabled: settings?.compressionEnabled ?? true,
+        };
       } catch (error) {
         console.error("加载设置失败:", error);
-        // 只在有网络错误时显示 toast
         if (
           error instanceof Error &&
           !error.message.includes("Database not initialized")
@@ -102,126 +191,59 @@ export default function SettingsPage() {
             ),
           });
         }
-      } finally {
-        setIsLoading(false);
+        return {};
       }
-    };
-
-    loadSettings();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // 保存设置
-  const handleSave = async () => {
-    try {
-      if (!baseUrl.trim()) {
-        toast.show({
-          placement: "top",
-          duration: 3000,
-          render: ({ id }: { id: string }) => (
-            <Toast nativeID={`toast-${id}`} action="warning" variant="solid">
-              <Text>请输入服务器地址</Text>
-            </Toast>
-          ),
+    },
+    onSave: async (values) => {
+      try {
+        // 保存设置
+        await SettingsOperations.updateSettings({
+          refreshInterval: values.refreshInterval,
+          articlesPerPage: values.articlesPerPage,
+          notificationsEnabled: values.notificationsEnabled,
+          soundNotificationEnabled: values.soundNotificationEnabled,
+          vibrationEnabled: values.vibrationEnabled,
+          offlineModeEnabled: values.offlineModeEnabled,
+          cacheItemLimit: values.cacheItemLimit,
+          compressionEnabled: values.compressionEnabled,
+          readingModeEnabled: values.readingModeEnabled,
+          feedsGroupedViewEnabled: values.feedsGroupedViewEnabled,
         });
-        return;
+      } catch (error) {
+        console.error("保存设置失败:", error);
       }
-
-      if (!username.trim()) {
-        toast.show({
-          placement: "top",
-          duration: 3000,
-          render: ({ id }: { id: string }) => (
-            <Toast nativeID={`toast-${id}`} action="warning" variant="solid">
-              <Text>请输入用户名</Text>
-            </Toast>
-          ),
-        });
-        return;
-      }
-
-      if (!password.trim()) {
-        toast.show({
-          placement: "top",
-          duration: 3000,
-          render: ({ id }: { id: string }) => (
-            <Toast nativeID={`toast-${id}`} action="warning" variant="solid">
-              <Text>请输入密码</Text>
-            </Toast>
-          ),
-        });
-        return;
-      }
-
-      setIsSaving(true);
-      // 保存用户信息
-      await SettingsOperations.setUserInfo(baseUrl, username, password);
-      // 保存其他设置
-      await SettingsOperations.updateSettings({
-        refreshInterval,
-        articlesPerPage,
-        notificationsEnabled,
-        soundNotificationEnabled,
-        vibrationEnabled,
-        offlineModeEnabled,
-        cacheItemLimit,
-        compressionEnabled,
-        readingModeEnabled,
-      });
-
-      toast.show({
-        placement: "top",
-        duration: 3000,
-        render: ({ id }: { id: string }) => (
-          <Toast nativeID={`toast-${id}`} action="success" variant="solid">
-            <Text>设置保存成功</Text>
-          </Toast>
-        ),
-      });
-    } catch (error) {
-      console.error("保存设置失败:", error);
-      toast.show({
-        placement: "top",
-        duration: 3000,
-        render: ({ id }: { id: string }) => (
-          <Toast nativeID={`toast-${id}`} action="error" variant="solid">
-            <Text>保存设置失败</Text>
-          </Toast>
-        ),
-      });
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  // 处理主题改变
-  const handleThemeChange = async (value: string) => {
-    const newTheme = value as "light" | "dark" | "system";
-    setTheme(newTheme);
-    try {
-      await setThemeSetting(newTheme);
-      toast.show({
-        placement: "top",
-        duration: 2000,
-        render: ({ id }: { id: string }) => (
-          <Toast nativeID={`toast-${id}`} action="success" variant="solid">
-            <Text>主题已切换</Text>
-          </Toast>
-        ),
-      });
-    } catch (error) {
-      console.error("切换主题失败:", error);
-      toast.show({
-        placement: "top",
-        duration: 2000,
-        render: ({ id }: { id: string }) => (
-          <Toast nativeID={`toast-${id}`} action="error" variant="solid">
-            <Text>切换主题失败</Text>
-          </Toast>
-        ),
-      });
-    }
-  };
+    },
+    customHandlers: {
+      theme: async (value: string) => {
+        try {
+          await setThemeSetting(value as "light" | "dark" | "system");
+          toast.show({
+            placement: "top",
+            duration: 2000,
+            render: ({ id }: { id: string }) => (
+              <Toast nativeID={`toast-${id}`} action="success" variant="solid">
+                <Text>主题已切换</Text>
+              </Toast>
+            ),
+          });
+        } catch (error) {
+          console.error("切换主题失败:", error);
+          toast.show({
+            placement: "top",
+            duration: 2000,
+            render: ({ id }: { id: string }) => (
+              <Toast nativeID={`toast-${id}`} action="error" variant="solid">
+                <Text>切换主题失败</Text>
+              </Toast>
+            ),
+          });
+        }
+      },
+      "server-config": (route: string) => {
+        router.push(route);
+      },
+    },
+  });
 
   if (isLoading) {
     return (
@@ -234,145 +256,8 @@ export default function SettingsPage() {
   return (
     <Box className="flex-1 bg-background-50">
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
-        <VStack className="space-y-8">
-          <Text className="text-2xl font-bold mb-2">设置</Text>
-
-          {/* 主题设置区域 */}
-          <VStack className="space-y-4 bg-background-0 rounded-lg p-4 mb-4 shadow-sm">
-            <Text className="text-lg font-semibold text-typography-800">
-              显示设置
-            </Text>
-
-            {/* 主题选择 */}
-            <FormControl>
-              <FormControlLabel>
-                <FormControlLabelText>主题模式</FormControlLabelText>
-              </FormControlLabel>
-              <Select
-                selectedValue={theme}
-                onValueChange={handleThemeChange}
-                isDisabled={isSaving}
-              >
-                <SelectTrigger>
-                  <SelectInput placeholder="选择主题模式" />
-                </SelectTrigger>
-                <SelectPortal>
-                  <SelectBackdrop />
-                  <SelectContent>
-                    <SelectDragIndicatorWrapper>
-                      <SelectDragIndicator />
-                    </SelectDragIndicatorWrapper>
-                    <SelectItem label="浅色" value="light" />
-                    <SelectItem label="深色" value="dark" />
-                    <SelectItem label="跟随系统" value="system" />
-                  </SelectContent>
-                </SelectPortal>
-              </Select>
-              <FormControlHelper>
-                <FormControlHelperText>
-                  选择应用的显示主题
-                </FormControlHelperText>
-              </FormControlHelper>
-            </FormControl>
-
-            {/* 阅读模式 */}
-            <FormControl>
-              <FormControlLabel>
-                <FormControlLabelText>阅读模式</FormControlLabelText>
-              </FormControlLabel>
-              <HStack className="items-center justify-between">
-                <Text className="text-typography-600">启用沉浸式阅读</Text>
-                <Switch
-                  value={readingModeEnabled}
-                  onValueChange={setReadingModeEnabled}
-                  isDisabled={isSaving}
-                />
-              </HStack>
-              <FormControlHelper>
-                <FormControlHelperText>
-                  开启后使用更适合阅读的排版和样式
-                </FormControlHelperText>
-              </FormControlHelper>
-            </FormControl>
-          </VStack>
-
-          {/* 服务器设置区域 */}
-          <VStack className="space-y-4 bg-background-0 rounded-lg p-4 mb-4 shadow-sm">
-            <Text className="text-lg font-semibold text-typography-800">
-              服务器配置
-            </Text>
-
-            {/* 服务器地址 */}
-            <FormControl>
-              <FormControlLabel>
-                <FormControlLabelText>服务器地址 (URL)</FormControlLabelText>
-              </FormControlLabel>
-              <Input>
-                <InputField
-                  placeholder="例如: https://api.example.com/api/greader.php"
-                  value={baseUrl}
-                  onChangeText={setBaseUrl}
-                  editable={!isSaving}
-                  type="text"
-                />
-              </Input>
-              <FormControlHelper>
-                <FormControlHelperText>
-                  输入 RSS 服务器的地址
-                </FormControlHelperText>
-              </FormControlHelper>
-            </FormControl>
-
-            {/* 用户名 */}
-            <FormControl>
-              <FormControlLabel>
-                <FormControlLabelText>用户名</FormControlLabelText>
-              </FormControlLabel>
-              <Input>
-                <InputField
-                  placeholder="输入用户名"
-                  value={username}
-                  onChangeText={setUsername}
-                  editable={!isSaving}
-                  type="text"
-                />
-              </Input>
-              <FormControlHelper>
-                <FormControlHelperText>服务器登录用户名</FormControlHelperText>
-              </FormControlHelper>
-            </FormControl>
-
-            {/* 密码 */}
-            <FormControl>
-              <FormControlLabel>
-                <FormControlLabelText>密码</FormControlLabelText>
-              </FormControlLabel>
-              <Input>
-                <InputField
-                  placeholder="输入密码"
-                  value={password}
-                  onChangeText={setPassword}
-                  editable={!isSaving}
-                  type="password"
-                />
-              </Input>
-              <FormControlHelper>
-                <FormControlHelperText>服务器登录密码</FormControlHelperText>
-              </FormControlHelper>
-            </FormControl>
-
-            {/* 按钮区域 */}
-            <VStack className="space-y-2 pt-4">
-              <Button
-                onPress={handleSave}
-                disabled={isSaving}
-                className="bg-primary-600 active:bg-primary-700"
-              >
-                <ButtonText>{isSaving ? "保存中..." : "保存设置"}</ButtonText>
-              </Button>
-            </VStack>
-          </VStack>
-        </VStack>
+        <Text className="text-2xl font-bold mb-6">设置</Text>
+        <Settings groups={settingsGroups} />
       </ScrollView>
     </Box>
   );
