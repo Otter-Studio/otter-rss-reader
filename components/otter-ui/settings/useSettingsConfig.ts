@@ -81,7 +81,7 @@ export function useSettingsConfig(options: SettingsConfigOptions) {
       setIsLoading(false);
     };
     loadData();
-  }, []);
+  }, [onLoad]);
 
   // 自动保存
   useEffect(() => {
