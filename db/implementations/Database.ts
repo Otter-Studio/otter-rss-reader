@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
 import Dexie from 'dexie';
 import { openDatabaseSync, SQLiteDatabase } from 'expo-sqlite';
-import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
 import type { IDatabase } from '@/db/abstractions/IDatabase';
 import type { ISettingsRepository } from '@/db/abstractions/ISettingsRepository';
 import type { IFeedRepository } from '@/db/abstractions/IFeedRepository';
@@ -31,13 +31,13 @@ class DexieDbCore extends Dexie {
   history!: Dexie.Table<IReadHistory, string>;
   constructor() {
     super('otter_rss_db');
-    this.version(1).stores({
-      settings: 'id, baseUrl, username, password, theme, updatedAt',
-      feeds: 'id, title, url, isActive, lastUpdated',
-      items: 'id, feedId, title, published, isRead, isStarred, isArchived',
-      categories: 'id, name, isActive, order',
-      tags: 'id, name, isActive, order, isSystem',
-      history: 'id, itemId, readStartTime, fullyRead',
+    this.version(4).stores({
+      settings: 'id, baseUrl, username, password, theme, refreshInterval, articlesPerPage, language, autoMarkAsRead, autoMarkAsReadDelay, notificationsEnabled, soundNotificationEnabled, vibrationEnabled, offlineModeEnabled, cacheItemLimit, compressionEnabled, readingModeEnabled, feedsGroupedViewEnabled, lastSyncTime, fontSizeMultiplier, lineHeightMultiplier, backgroundColor, textColor, createdAt, updatedAt',
+      feeds: 'id, title, description, url, htmlUrl, iconUrl, author, language, lastUpdated, lastError, failureCount, isActive, customTitle, itemCount, unreadCount, categoryIds, createdAt, updatedAt',
+      items: 'id, title, summary, content, author, link, htmlUrl, image, published, crawlTime, feedId, feedTitle, categoryIds, tagIds, isRead, isStarred, isArchived, readingTime, rating, notes, scrollPosition, createdAt, updatedAt',
+      categories: 'id, name, description, iconUrl, color, order, parentId, isActive, createdAt, updatedAt',
+      tags: 'id, name, description, color, iconUrl, order, isSystem, isActive, createdAt, updatedAt',
+      history: 'id, itemId, itemTitle, feedTitle, itemLink, readStartTime, readEndTime, timeSpent, scrollPosition, fullyRead, rating, notes, deviceType, viewportTime, createdAt, updatedAt',
     });
     this.settings = this.table('settings');
     this.feeds = this.table('feeds');
@@ -67,6 +67,12 @@ const settingsTable = sqliteTable('settings', {
   cacheItemLimit: integer('cacheItemLimit'),
   compressionEnabled: integer('compressionEnabled'),
   readingModeEnabled: integer('readingModeEnabled'),
+  feedsGroupedViewEnabled: integer('feedsGroupedViewEnabled'),
+  lastSyncTime: integer('lastSyncTime'),
+  fontSizeMultiplier: real('fontSizeMultiplier'),
+  lineHeightMultiplier: real('lineHeightMultiplier'),
+  backgroundColor: text('backgroundColor'),
+  textColor: text('textColor'),
   createdAt: text('createdAt'),
   updatedAt: text('updatedAt'),
 });
@@ -87,6 +93,9 @@ const feedsTable = sqliteTable('feeds', {
   customTitle: text('customTitle'),
   itemCount: integer('itemCount'),
   unreadCount: integer('unreadCount'),
+  categoryIds: text('categoryIds'),
+  createdAt: text('createdAt'),
+  updatedAt: text('updatedAt'),
 });
 
 const itemsTable = sqliteTable('items', {
@@ -96,10 +105,12 @@ const itemsTable = sqliteTable('items', {
   content: text('content'),
   author: text('author'),
   link: text('link'),
+  htmlUrl: text('htmlUrl'),
   image: text('image'),
   published: integer('published'),
   crawlTime: integer('crawlTime'),
   feedId: text('feedId'),
+  feedTitle: text('feedTitle'),
   categoryIds: text('categoryIds'),
   tagIds: text('tagIds'),
   isRead: integer('isRead'),
@@ -109,6 +120,8 @@ const itemsTable = sqliteTable('items', {
   rating: integer('rating'),
   notes: text('notes'),
   scrollPosition: integer('scrollPosition'),
+  createdAt: text('createdAt'),
+  updatedAt: text('updatedAt'),
 });
 
 const categoriesTable = sqliteTable('categories', {
@@ -120,6 +133,8 @@ const categoriesTable = sqliteTable('categories', {
   order: integer('order'),
   parentId: text('parentId'),
   isActive: integer('isActive'),
+  createdAt: text('createdAt'),
+  updatedAt: text('updatedAt'),
 });
 
 const tagsTable = sqliteTable('tags', {
@@ -131,6 +146,8 @@ const tagsTable = sqliteTable('tags', {
   order: integer('order'),
   isSystem: integer('isSystem'),
   isActive: integer('isActive'),
+  createdAt: text('createdAt'),
+  updatedAt: text('updatedAt'),
 });
 
 const historyTable = sqliteTable('history', {
@@ -148,6 +165,8 @@ const historyTable = sqliteTable('history', {
   notes: text('notes'),
   deviceType: text('deviceType'),
   viewportTime: integer('viewportTime'),
+  createdAt: text('createdAt'),
+  updatedAt: text('updatedAt'),
 });
 
 
@@ -210,6 +229,12 @@ export default class Database implements IDatabase {
           cacheItemLimit INTEGER,
           compressionEnabled INTEGER,
           readingModeEnabled INTEGER,
+          feedsGroupedViewEnabled INTEGER,
+          lastSyncTime INTEGER,
+          fontSizeMultiplier REAL,
+          lineHeightMultiplier REAL,
+          backgroundColor TEXT,
+          textColor TEXT,
           createdAt TEXT,
           updatedAt TEXT
         );`);
@@ -228,7 +253,10 @@ export default class Database implements IDatabase {
           isActive INTEGER,
           customTitle TEXT,
           itemCount INTEGER,
-          unreadCount INTEGER
+          unreadCount INTEGER,
+          categoryIds TEXT,
+          createdAt TEXT,
+          updatedAt TEXT
         );`);
         await db.run(`CREATE TABLE IF NOT EXISTS items (
           id TEXT PRIMARY KEY,
@@ -237,10 +265,12 @@ export default class Database implements IDatabase {
           content TEXT,
           author TEXT,
           link TEXT,
+          htmlUrl TEXT,
           image TEXT,
           published INTEGER,
           crawlTime INTEGER,
           feedId TEXT,
+          feedTitle TEXT,
           categoryIds TEXT,
           tagIds TEXT,
           isRead INTEGER,
@@ -249,7 +279,9 @@ export default class Database implements IDatabase {
           readingTime INTEGER,
           rating INTEGER,
           notes TEXT,
-          scrollPosition INTEGER
+          scrollPosition INTEGER,
+          createdAt TEXT,
+          updatedAt TEXT
         );`);
         await db.run(`CREATE TABLE IF NOT EXISTS categories (
           id TEXT PRIMARY KEY,
@@ -259,7 +291,9 @@ export default class Database implements IDatabase {
           color TEXT,
           \`order\` INTEGER,
           parentId TEXT,
-          isActive INTEGER
+          isActive INTEGER,
+          createdAt TEXT,
+          updatedAt TEXT
         );`);
         await db.run(`CREATE TABLE IF NOT EXISTS tags (
           id TEXT PRIMARY KEY,
@@ -269,7 +303,9 @@ export default class Database implements IDatabase {
           iconUrl TEXT,
           \`order\` INTEGER,
           isSystem INTEGER,
-          isActive INTEGER
+          isActive INTEGER,
+          createdAt TEXT,
+          updatedAt TEXT
         );`);
         await db.run(`CREATE TABLE IF NOT EXISTS history (
           id TEXT PRIMARY KEY,
@@ -285,7 +321,9 @@ export default class Database implements IDatabase {
           rating INTEGER,
           notes TEXT,
           deviceType TEXT,
-          viewportTime INTEGER
+          viewportTime INTEGER,
+          createdAt TEXT,
+          updatedAt TEXT
         );`);
         // --- end ---
         // settings
