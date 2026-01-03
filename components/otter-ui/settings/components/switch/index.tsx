@@ -31,18 +31,6 @@ const settingsSwitchContainer = tva({
   },
 });
 
-const settingsSwitchLabel = tva({
-  base: "text-typography-600",
-  variants: {
-    type: {
-      base: "",
-      error: "text-error-600",
-      warning: "text-warning-600",
-      success: "text-success-600",
-    },
-  },
-});
-
 export const SettingsSwitch: React.FC<SettingsSwitchProps> = ({
   label,
   tips,
