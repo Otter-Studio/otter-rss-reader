@@ -41,6 +41,9 @@ export interface IItem extends IBaseEntity {
   /** 关联的 Feed ID */
   feedId: string;
 
+  /** Feed 的标题（冗余字段，用于快速显示） */
+  feedTitle?: string;
+
   /** 关联的 Feed 对象 */
   feed?: IFeed;
 
