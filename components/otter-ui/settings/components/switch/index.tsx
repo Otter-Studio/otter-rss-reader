@@ -8,6 +8,7 @@ import {
   FormControlHelperText,
 } from "@/components/ui/form-control";
 import { HStack } from "@/components/ui/hstack";
+import { Text } from "@/components/ui/text";
 import { Switch } from "@/components/ui/switch";
 
 export interface SettingsSwitchProps {
@@ -31,6 +32,18 @@ const settingsSwitchContainer = tva({
   },
 });
 
+const settingsSwitchLabel = tva({
+  base: "text-typography-600",
+  variants: {
+    type: {
+      base: "",
+      error: "text-error-600",
+      warning: "text-warning-600",
+      success: "text-success-600",
+    },
+  },
+});
+
 export const SettingsSwitch: React.FC<SettingsSwitchProps> = ({
   label,
   tips,
@@ -45,6 +58,7 @@ export const SettingsSwitch: React.FC<SettingsSwitchProps> = ({
         <FormControlLabelText>{label}</FormControlLabelText>
       </FormControlLabel>
       <HStack className={settingsSwitchContainer({ type })}>
+        <Text className={settingsSwitchLabel({ type })}>{label}</Text>
         <Switch value={value} onValueChange={onChange} isDisabled={disabled} />
       </HStack>
       <FormControlHelper>
