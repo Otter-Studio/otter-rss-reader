@@ -225,7 +225,6 @@ export const SettingsItem: React.FC<SettingsItemProps> = ({ item }) => {
   // 选择器（移动端风格：左右布局）
   if (item.type === "select") {
     const selectedOption = item.options.find((opt) => opt.value === item.value);
-    const displayValue = selectedOption?.label || item.placeholder || "请选择";
 
     return (
       <HStack className="items-center justify-between py-4 px-4 bg-background-0 rounded-lg">
