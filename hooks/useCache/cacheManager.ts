@@ -210,6 +210,13 @@ export class CacheManager {
               ? new Date(article.createdAt).getTime()
               : published;
 
+            // 优先使用 feedTitle，其次从 feeds 中查找
+            let feedTitle = article.feedTitle || '';
+            if (!feedTitle) {
+              const feed = this.state.feeds.find((f: any) => f.id === article.feedId);
+              feedTitle = feed?.title || '';
+            }
+
             return {
               id: article.id,
               title: article.title,
@@ -222,7 +229,7 @@ export class CacheManager {
               origin: {
                 streamId: article.feedId,
                 htmlUrl: '',
-                title: '',
+                title: feedTitle,
               },
               crawlTimeMsec: created,
               timestampUsec: created * 1000,
@@ -274,6 +281,24 @@ export class CacheManager {
 
         items = allItems;
       }
+
+      // 为 API 返回的 items 填充 origin.title（如果缺失）
+      items = items.map(item => {
+        if (item.origin?.streamId && !item.origin.title) {
+          const feed = this.state.feeds.find(f => f.id === item.origin?.streamId);
+          if (feed) {
+            // 创建新对象而不是直接修改原对象
+            return {
+              ...item,
+              origin: {
+                ...item.origin,
+                title: feed.title || '',
+              },
+            };
+          }
+        }
+        return item;
+      });
 
       const merged = this._mergeItems(this.state.items, items);
       this.state.items = merged;
@@ -473,10 +498,9 @@ export class CacheManager {
     try {
       // Step 1: 从数据库快速加载（无阻塞）
       console.log('[Cache] Initializing from DB...');
-      await Promise.all([
-        this.refreshFeeds(true),  // 初始加载，优先用 DB
-        this.refreshItems(),
-      ]);
+      // 先加载 feeds，再加载 items（因为 items 的显示依赖 feeds 中的标题信息）
+      await this.refreshFeeds(true);
+      await this.refreshItems();
 
       // Step 2: 仅在 baseUrl 配置后启动后台定时刷新
       const settings = await SettingsOperations.getSettings();
@@ -581,15 +605,21 @@ export class CacheManager {
         const link = item.canonical?.[0]?.href || item.alternate?.[0]?.href || item.id;
         const published = item.published ? new Date(item.published).getTime() : now;
 
+        // 从 feeds 中查找对应的 feed 标题
+        const feedId = item.origin?.streamId || 'unknown';
+        const feed = this.state.feeds.find((f: any) => f.id === feedId);
+        const feedTitle = feed?.title || '';
+
         return {
           id: item.id,
           title: item.title || 'Untitled',
           summary: item.summary?.content || '',
-          content: item.content || item.summary?.content || '',
+          content: item.summary?.content || '',
           author: item.author || '',
           link,
           htmlUrl: item.origin?.htmlUrl || link,
-          feedId: item.origin?.streamId || 'unknown',
+          feedId: feedId,
+          feedTitle: feedTitle,
           published,
           crawlTime: item.crawlTimeMsec ?? now,
           isRead: false,

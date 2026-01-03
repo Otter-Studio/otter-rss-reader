@@ -104,12 +104,13 @@ interface Article {
 
 export default function ItemsPage() {
   const router = useRouter();
-  const { tagId, tagName, feedId, feedTitle } = useLocalSearchParams();
+  const { categoryId, categoryName, feedId, feedTitle } =
+    useLocalSearchParams();
   const [refreshing, setRefreshing] = useState(false);
 
   // 根据参数选择过滤条件
-  const cacheOptions = tagId
-    ? { categoryId: tagId as string }
+  const cacheOptions = categoryId
+    ? { categoryId: categoryId as string }
     : feedId
     ? { feedId: feedId as string }
     : undefined;
@@ -202,8 +203,8 @@ export default function ItemsPage() {
         <Text className={subtitle({})}>
           {feedTitle
             ? `${feedTitle} · ${total} 篇`
-            : tagName
-            ? `${tagName} · ${total} 篇`
+            : categoryName
+            ? `${categoryName} · ${total} 篇`
             : `全部文章 · ${total} 篇`}
         </Text>
       </Box>
@@ -217,7 +218,7 @@ export default function ItemsPage() {
             <Text className={emptyEmoji({})}>📭</Text>
             <Text className={emptyTitle({})}>暂无文章</Text>
             <Text className={emptyText({})}>
-              {tagName ? "该标签下暂无文章" : "暂无文章"}
+              {categoryName ? "该分类下暂无文章" : "暂无文章"}
             </Text>
           </Box>
         </Box>
