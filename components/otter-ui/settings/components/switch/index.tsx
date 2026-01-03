@@ -8,7 +8,6 @@ import {
   FormControlHelperText,
 } from "@/components/ui/form-control";
 import { HStack } from "@/components/ui/hstack";
-import { Text } from "@/components/ui/text";
 import { Switch } from "@/components/ui/switch";
 
 export interface SettingsSwitchProps {
@@ -55,10 +54,11 @@ export const SettingsSwitch: React.FC<SettingsSwitchProps> = ({
   return (
     <FormControl>
       <FormControlLabel>
-        <FormControlLabelText>{label}</FormControlLabelText>
+        <FormControlLabelText className={settingsSwitchLabel({ type })}>
+          {label}
+        </FormControlLabelText>
       </FormControlLabel>
       <HStack className={settingsSwitchContainer({ type })}>
-        <Text className={settingsSwitchLabel({ type })}>{label}</Text>
         <Switch value={value} onValueChange={onChange} isDisabled={disabled} />
       </HStack>
       <FormControlHelper>
