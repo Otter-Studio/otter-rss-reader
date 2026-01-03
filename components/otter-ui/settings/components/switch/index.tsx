@@ -31,6 +31,18 @@ const settingsSwitchContainer = tva({
   },
 });
 
+const settingsSwitchLabel = tva({
+  base: "text-typography-600",
+  variants: {
+    type: {
+      base: "",
+      error: "text-error-600",
+      warning: "text-warning-600",
+      success: "text-success-600",
+    },
+  },
+});
+
 export const SettingsSwitch: React.FC<SettingsSwitchProps> = ({
   label,
   tips,
@@ -42,7 +54,9 @@ export const SettingsSwitch: React.FC<SettingsSwitchProps> = ({
   return (
     <FormControl>
       <FormControlLabel>
-        <FormControlLabelText>{label}</FormControlLabelText>
+        <FormControlLabelText className={settingsSwitchLabel({ type })}>
+          {label}
+        </FormControlLabelText>
       </FormControlLabel>
       <HStack className={settingsSwitchContainer({ type })}>
         <Switch value={value} onValueChange={onChange} isDisabled={disabled} />
